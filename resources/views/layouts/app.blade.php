@@ -2,10 +2,11 @@
 <html lang="en" data-theme="light">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>@yield('title', 'Wowdash - Bootstrap 5 Admin Dashboard')</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>@yield('title', config('app.name', 'Wowdash Dashboard'))</title>
     <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon.png') }}" sizes="16x16">
 
     <link rel="stylesheet" href="{{ asset('assets/css/remixicon.css') }}">
@@ -25,27 +26,30 @@
     <link rel="stylesheet" href="{{ asset('assets/css/lib/audioplayer.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 
-    @stack('styles')
+    {{-- PENTING: Hapus baris @vite ini untuk menghindari konflik Tailwind dengan Bootstrap --}}
+    {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
+
+    @stack('styles') {{-- Untuk CSS spesifik halaman --}}
 </head>
 
-<body>
+<body class="font-sans antialiased">
+    <div class="app"> {{-- Container utama dari Wowdash --}}
+        <div class="layout"> {{-- Layout container dari Wowdash --}}
 
-    {{-- Memasukkan Sidebar --}}
-    @include('layouts.sidebar')
+            @include('layouts.sidebar') {{-- Sidebar Wowdash (pastikan file ini ada dan berisi kode sidebar) --}}
 
-    <main class="dashboard-main">
+            <main class="dashboard-main"> {{-- Main content area dari Wowdash --}}
+                @include('layouts.header') {{-- Header/Navbar dari Wowdash (pastikan file ini ada dan berisi kode header) --}}
 
-        {{-- Memasukkan Header/Navbar --}}
-        @include('layouts.header')
+                <div class="dashboard-main-body"> {{-- Wrapper untuk body konten dashboard --}}
+                    {{-- Ini adalah tempat untuk konten utama yang akan diisi oleh view anak (misal dashboard.blade.php) --}}
+                    @yield('content')
+                </div>
 
-        <div class="dashboard-main-body">
-            @yield('content')
+                @include('layouts.footer') {{-- Footer Wowdash (pastikan file ini ada dan berisi kode footer) --}}
+            </main>
         </div>
-
-        {{-- Memasukkan Footer --}}
-        @include('layouts.footer')
-
-    </main>
+    </div>
 
     <script src="{{ asset('assets/js/lib/jquery-3.7.1.min.js') }}"></script>
     <script src="{{ asset('assets/js/lib/bootstrap.bundle.min.js') }}"></script>
@@ -60,12 +64,10 @@
     <script src="{{ asset('assets/js/lib/prism.js') }}"></script>
     <script src="{{ asset('assets/js/lib/file-upload.js') }}"></script>
     <script src="{{ asset('assets/js/lib/audioplayer.js') }}"></script>
-
     <script src="{{ asset('assets/js/app.js') }}"></script>
     <script src="{{ asset('assets/js/homeOneChart.js') }}"></script>
 
-    @stack('scripts')
-
+    @stack('scripts') {{-- Untuk JS spesifik halaman --}}
 </body>
 
 </html>
