@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
+    public const HOME = '/'; // Ini yang akan mengarahkan ke root URL setelah login
     /**
      * Register any application services.
      */
