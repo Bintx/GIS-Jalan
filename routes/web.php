@@ -14,6 +14,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('kerusakan-jalan', KerusakanJalanController::class);
     Route::get('/api/jalan/{jalan}', [JalanController::class, 'getJalanData'])->name('api.jalan.get-data');
     Route::get('/map-overview', [DashboardController::class, 'mapOverview'])->name('map.overview');
+    Route::get('/kerusakan-jalan/export/pdf', [KerusakanJalanController::class, 'exportPdf'])->name('kerusakan-jalan.export-pdf');
+    Route::get('/kerusakan-jalan/export/excel', [KerusakanJalanController::class, 'exportExcel'])->name('kerusakan-jalan.export-excel');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

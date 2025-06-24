@@ -29,7 +29,11 @@
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="card-title mb-0">Daftar Laporan Kerusakan</h5>
-                <a href="{{ route('kerusakan-jalan.create') }}" class="btn btn-primary btn-sm">Tambah Laporan</a>
+                <div>
+                    <a href="{{ route('kerusakan-jalan.create') }}" class="btn btn-primary btn-sm me-2">Tambah Laporan</a>
+                    <a href="{{ route('kerusakan-jalan.export-pdf') }}" class="btn btn-info btn-sm me-2">Export PDF</a>
+                    <a href="{{ route('kerusakan-jalan.export-excel') }}" class="btn btn-success btn-sm">Export Excel</a>
+                </div>
             </div>
 
             <div class="table-responsive">

@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Storage; // Untuk upload file
 use App\Models\Jalan; // Perlu untuk dropdown Jalan di form laporan
 use Illuminate\Support\Facades\Auth; // Untuk mendapatkan user yang login
 use App\Services\NaiveBayesClassifier;
+use Barryvdh\DomPDF\Facade\Pdf; // Import Facade PDF
+use Maatwebsite\Excel\Facades\Excel; // Import Facade Excel
+use App\Exports\KerusakanJalanExport;
 
 class KerusakanJalanController extends Controller
 {
@@ -232,5 +235,21 @@ class KerusakanJalanController extends Controller
         $kerusakanJalan->delete();
 
         return redirect()->route('kerusakan-jalan.index')->with('success', 'Laporan kerusakan jalan berhasil dihapus!');
+    }
+    public function exportPdf()
+    {
+        $kerusakanJalans = KerusakanJalan::with(['jalan.regional', 'user'])->latest('tanggal_lapor')->get();
+
+        // Load the view for PDF (akan kita buat di langkah selanjutnya)
+        $pdf = Pdf::loadView('reports.kerusakan_jalan_pdf', compact('kerusakanJalans'));
+        return $pdf->download('laporan_kerusakan_jalan_' . date('Ymd_His') . '.pdf');
+    }
+
+    /**
+     * Export all KerusakanJalan data to Excel.
+     */
+    public function exportExcel()
+    {
+        return Excel::download(new KerusakanJalanExport, 'laporan_kerusakan_jalan_' . date('Ymd_His') . '.xlsx');
     }
 }
