@@ -2,66 +2,161 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Jalan;
+use App\Models\Regional; // Perlu untuk dropdown Jalan di form laporan
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth; // Untuk mendapatkan user yang login
 
 class JalanController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        $jalans = Jalan::all();
+        $jalans = Jalan::with('regional')->latest()->paginate(10);
         return view('jalan.index', compact('jalans'));
     }
 
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
-        return view('jalan.create');
+        $regionals = Regional::all();
+        return view('jalan.create', compact('regionals'));
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
-        $request->validate([
-            'nama_jalan' => 'required',
-            'lokasi' => 'required',
-            'panjang' => 'required|numeric',
-            'lebar' => 'required|numeric',
-            'tipe_perkerasan' => 'required',
-            'status' => 'required',
+        $validated = $request->validate([
+            'nama_jalan' => 'required|string|max:255',
+            'panjang_jalan' => 'required|numeric|min:0',
+            'kondisi_jalan' => ['required', 'string', Rule::in(['baik', 'rusak ringan', 'rusak sedang', 'rusak berat'])],
+            'regional_id' => 'required|exists:regional,id',
+            'geometri_coords' => 'required|json',
         ]);
 
-        Jalan::create($request->all());
-        return redirect()->route('jalan.index')->with('success', 'Data jalan berhasil ditambahkan');
+        $coordsFromFrontend = json_decode($validated['geometri_coords'], true);
+
+        $geojsonCoordinates = array_map(function ($coord) {
+            return [$coord[1], $coord[0]];
+        }, $coordsFromFrontend);
+
+        $geojsonLineString = [
+            'type' => 'LineString',
+            'coordinates' => $geojsonCoordinates
+        ];
+
+        $jalan = Jalan::create([
+            'nama_jalan' => $validated['nama_jalan'],
+            'panjang_jalan' => $validated['panjang_jalan'],
+            'kondisi_jalan' => $validated['kondisi_jalan'],
+            'regional_id' => $validated['regional_id'],
+            'geometri_json' => $geojsonLineString,
+        ]);
+
+        return redirect()->route('jalan.index')->with('success', 'Data Jalan berhasil ditambahkan!');
     }
 
+    /**
+     * Display the specified resource.
+     */
     public function show(Jalan $jalan)
     {
         return view('jalan.show', compact('jalan'));
     }
 
+    /**
+     * Show the form for editing the specified resource.
+     */
     public function edit(Jalan $jalan)
     {
-        return view('jalan.edit', compact('jalan'));
+        $regionals = Regional::all();
+        $existingGeomCoords = '[]';
+        if ($jalan->geometri_json && is_array($jalan->geometri_json) && isset($jalan->geometri_json['coordinates'])) {
+            $lonLatCoords = $jalan->geometri_json['coordinates'];
+            $mappedCoords = array_map(function ($coord) {
+                return [$coord[1], $coord[0]];
+            }, $lonLatCoords);
+            $existingGeomCoords = json_encode($mappedCoords);
+        }
+
+        return view('jalan.edit', compact('jalan', 'regionals', 'existingGeomCoords'));
     }
 
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, Jalan $jalan)
     {
-        $request->validate([
-            'nama_jalan' => 'required',
-            'lokasi' => 'required',
-            'panjang' => 'required|numeric',
-            'lebar' => 'required|numeric',
-            'tipe_perkerasan' => 'required',
-            'status' => 'required',
+        $validated = $request->validate([
+            'nama_jalan' => 'required|string|max:255',
+            'panjang_jalan' => 'required|numeric|min:0',
+            'kondisi_jalan' => ['required', 'string', Rule::in(['baik', 'rusak ringan', 'rusak sedang', 'rusak berat'])],
+            'regional_id' => 'required|exists:regional,id',
+            'geometri_coords' => 'required|json',
         ]);
 
-        $jalan->update($request->all());
-        return redirect()->route('jalan.index')->with('success', 'Data jalan berhasil diperbarui');
+        $coordsFromFrontend = json_decode($validated['geometri_coords'], true);
+
+        $geojsonCoordinates = array_map(function ($coord) {
+            return [$coord[1], $coord[0]];
+        }, $coordsFromFrontend);
+
+        $geojsonLineString = [
+            'type' => 'LineString',
+            'coordinates' => $geojsonCoordinates
+        ];
+
+        $jalan->update([
+            'nama_jalan' => $validated['nama_jalan'],
+            'panjang_jalan' => $validated['panjang_jalan'],
+            'kondisi_jalan' => $validated['kondisi_jalan'],
+            'regional_id' => $validated['regional_id'],
+            'geometri_json' => $geojsonLineString,
+        ]);
+
+        return redirect()->route('jalan.index')->with('success', 'Data Jalan berhasil diperbarui!');
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(Jalan $jalan)
     {
         $jalan->delete();
-        return redirect()->route('jalan.index')->with('success', 'Data jalan berhasil dihapus');
+        return redirect()->route('jalan.index')->with('success', 'Data Jalan berhasil dihapus!');
+    }
+
+    /**
+     * Get road data by ID for AJAX request.
+     * Includes regional data for context.
+     */
+    public function getJalanData(Jalan $jalan)
+    {
+        $jalan->load('regional');
+
+        $tingkatKerusakanMap = [
+            'baik' => '',
+            'rusak ringan' => 'ringan',
+            'rusak sedang' => 'sedang',
+            'rusak berat' => 'berat',
+        ];
+
+        return response()->json([
+            'id' => $jalan->id,
+            'nama_jalan' => $jalan->nama_jalan,
+            'panjang_jalan' => $jalan->panjang_jalan,
+            'kondisi_jalan_master' => $jalan->kondisi_jalan,
+            'regional_nama' => $jalan->regional->nama_regional ?? 'N/A',
+            'regional_tipe' => $jalan->regional->tipe_regional ?? 'N/A',
+            'suggested_tingkat_kerusakan' => $tingkatKerusakanMap[$jalan->kondisi_jalan] ?? '',
+            'suggested_panjang_ruas_rusak' => $jalan->panjang_jalan,
+        ]);
     }
 }
-
