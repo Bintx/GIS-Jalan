@@ -1,11 +1,11 @@
-{{-- resources/views/jalan/index.blade.php --}}
+{{-- resources/views/regional/index.blade.php --}}
 @extends('layouts.app')
 
-@section('title', 'Data Master Jalan')
+@section('title', 'Data Master Regional')
 
 @section('content')
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-        <h6 class="fw-semibold mb-0">Data Master Jalan</h6>
+        <h6 class="fw-semibold mb-0">Data Master Regional</h6>
         <ul class="d-flex align-items-center gap-2">
             <li class="fw-medium">
                 <a href="{{ route('dashboard') }}" class="d-flex align-items-center gap-1 hover-text-primary">
@@ -14,7 +14,7 @@
                 </a>
             </li>
             <li>-</li>
-            <li class="fw-medium">Data Jalan</li>
+            <li class="fw-medium">Data Regional</li>
         </ul>
     </div>
 
@@ -28,8 +28,8 @@
             @endif
 
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="card-title mb-0">Daftar Jalan</h5>
-                <a href="{{ route('jalan.create') }}" class="btn btn-primary btn-sm">Tambah Jalan</a>
+                <h5 class="card-title mb-0">Daftar Regional</h5>
+                <a href="{{ route('regional.create') }}" class="btn btn-primary btn-sm">Tambah Regional</a>
             </div>
 
             <div class="table-responsive">
@@ -37,25 +37,21 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Nama Jalan</th>
-                            <th>Panjang (m)</th>
-                            <th>Kondisi Awal</th>
-                            <th>Regional</th>
+                            <th>Nama Regional</th>
+                            <th>Tipe Regional</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($jalans as $jalan)
+                        @forelse ($regionals as $regional)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                <td>{{ $jalan->nama_jalan }}</td>
-                                <td>{{ $jalan->panjang_jalan }}</td>
-                                <td>{{ $jalan->kondisi_jalan }}</td>
-                                <td>{{ $jalan->regional->nama_regional ?? 'N/A' }}</td>
+                                <td>{{ $regional->nama_regional }}</td>
+                                <td>{{ $regional->tipe_regional }}</td>
                                 <td>
-                                    <a href="{{ route('jalan.show', $jalan->id) }}" class="btn btn-info btn-sm">Lihat</a>
-                                    <a href="{{ route('jalan.edit', $jalan->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                                    <form action="{{ route('jalan.destroy', $jalan->id) }}" method="POST"
+                                    <a href="{{ route('regional.edit', $regional->id) }}"
+                                        class="btn btn-warning btn-sm">Edit</a>
+                                    <form action="{{ route('regional.destroy', $regional->id) }}" method="POST"
                                         class="d-inline">
                                         @csrf
                                         @method('DELETE')
@@ -66,7 +62,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center">Tidak ada data jalan.</td>
+                                <td colspan="4" class="text-center">Tidak ada data regional.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -74,7 +70,7 @@
             </div>
 
             <div class="mt-4">
-                {{ $jalans->links() }}
+                {{ $regionals->links() }}
             </div>
         </div>
     </div>

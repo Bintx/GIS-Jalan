@@ -3,8 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Grimzy\LaravelPostgis\Support\Facades\Postgis;
-
 
 return new class extends Migration
 {
@@ -17,7 +15,7 @@ return new class extends Migration
             $table->enum('kondisi_jalan', ['baik', 'rusak ringan', 'rusak sedang', 'rusak berat']);
             $table->foreignId('regional_id')->constrained('regional')->onDelete('cascade');
             $table->timestamps();
-            $table->geometry('geometri', 'LineString', 4326)->nullable();
+            $table->jsonb('geometri_json')->nullable(); // Ganti dengan jsonb atau text
         });
     }
 
