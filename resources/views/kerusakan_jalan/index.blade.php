@@ -36,6 +36,66 @@
                 </div>
             </div>
 
+            {{-- Filter Form --}}
+            <form action="{{ route('kerusakan-jalan.index') }}" method="GET" class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="filter_nama_jalan" class="form-label text-sm">Nama Jalan</label>
+                        {{-- Menggunakan input teks biasa untuk pencarian nama jalan --}}
+                        <input type="text" class="form-control form-control-sm" id="filter_nama_jalan" name="nama_jalan"
+                            value="{{ $filterNamaJalan }}" placeholder="Cari nama jalan...">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="filter_tingkat_kerusakan" class="form-label text-sm">Tingkat Kerusakan</label>
+                        <select class="form-select form-select-sm" id="filter_tingkat_kerusakan" name="tingkat_kerusakan">
+                            <option value="">Semua Tingkat</option>
+                            <option value="ringan" {{ $filterTingkatKerusakan === 'ringan' ? 'selected' : '' }}>Ringan
+                            </option>
+                            <option value="sedang" {{ $filterTingkatKerusakan === 'sedang' ? 'selected' : '' }}>Sedang
+                            </option>
+                            <option value="berat" {{ $filterTingkatKerusakan === 'berat' ? 'selected' : '' }}>Berat
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="filter_prioritas" class="form-label text-sm">Prioritas</label>
+                        <select class="form-select form-select-sm" id="filter_prioritas" name="prioritas">
+                            <option value="">Semua Prioritas</option>
+                            <option value="tinggi" {{ $filterPrioritas === 'tinggi' ? 'selected' : '' }}>Tinggi</option>
+                            <option value="sedang" {{ $filterPrioritas === 'sedang' ? 'selected' : '' }}>Sedang</option>
+                            <option value="rendah" {{ $filterPrioritas === 'rendah' ? 'selected' : '' }}>Rendah</option>
+                            <option value="belum_diklasifikasi"
+                                {{ $filterPrioritas === 'belum_diklasifikasi' ? 'selected' : '' }}>Belum Diklasifikasi
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="filter_status" class="form-label text-sm">Status Perbaikan</label>
+                        <select class="form-select form-select-sm" id="filter_status" name="status_perbaikan">
+                            <option value="">Semua Status</option>
+                            <option value="belum_diperbaiki"
+                                {{ $filterStatusPerbaikan === 'belum_diperbaiki' ? 'selected' : '' }}>Belum Diperbaiki
+                            </option>
+                            <option value="dalam_perbaikan"
+                                {{ $filterStatusPerbaikan === 'dalam_perbaikan' ? 'selected' : '' }}>Dalam Perbaikan
+                            </option>
+                            <option value="sudah_diperbaiki"
+                                {{ $filterStatusPerbaikan === 'sudah_diperbaiki' ? 'selected' : '' }}>Sudah Diperbaiki
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-secondary btn-sm me-2">Terapkan Filter</button>
+                    <a href="{{ route('kerusakan-jalan.index') }}" class="btn btn-outline-secondary btn-sm">Reset
+                        Filter</a>
+                </div>
+            </form>
+            {{-- End Filter Form --}}
+
             <div class="table-responsive">
                 <table class="table table-bordered table-hover">
                     <thead>
