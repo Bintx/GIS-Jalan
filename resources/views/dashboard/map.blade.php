@@ -7,7 +7,6 @@
     <style>
         #mapid {
             height: 700px;
-            /* Tinggi peta yang lebih besar untuk overview */
             width: 100%;
             border-radius: 8px;
         }
@@ -38,6 +37,7 @@
             color: white;
             display: inline-block;
             margin-bottom: 5px;
+            text-transform: uppercase;
         }
 
         .info-box .priority-high {
@@ -69,6 +69,7 @@
             color: white;
             display: inline-block;
             margin-bottom: 5px;
+            text-transform: uppercase;
         }
 
         .info-box .status-belum {
@@ -110,6 +111,52 @@
 
     <div class="card h-100">
         <div class="card-body p-24">
+            {{-- Filter Form --}}
+            <form id="mapFilterForm" class="mb-4 d-flex flex-wrap align-items-end gap-3">
+                <div class="flex-grow-1">
+                    <label for="filter_regional" class="form-label text-sm">Regional</label>
+                    <select class="form-select form-select-sm" id="filter_regional" name="regional_id">
+                        <option value="">Semua Regional</option>
+                        @foreach ($regionals as $regional)
+                            <option value="{{ $regional->id }}"
+                                {{ (string) $filterRegionalId === (string) $regional->id ? 'selected' : '' }}>
+                                {{ $regional->nama_regional }} ({{ $regional->tipe_regional }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex-grow-1">
+                    <label for="filter_prioritas" class="form-label text-sm">Prioritas</label>
+                    <select class="form-select form-select-sm" id="filter_prioritas" name="prioritas">
+                        <option value="">Semua Prioritas</option>
+                        <option value="tinggi" {{ $filterPrioritas === 'tinggi' ? 'selected' : '' }}>Tinggi</option>
+                        <option value="sedang" {{ $filterPrioritas === 'sedang' ? 'selected' : '' }}>Sedang</option>
+                        <option value="rendah" {{ $filterPrioritas === 'rendah' ? 'selected' : '' }}>Rendah</option>
+                        <option value="belum_diklasifikasi"
+                            {{ $filterPrioritas === 'belum_diklasifikasi' ? 'selected' : '' }}>Belum Diklasifikasi</option>
+                    </select>
+                </div>
+
+                <div class="flex-grow-1">
+                    <label for="filter_status" class="form-label text-sm">Status Perbaikan</label>
+                    <select class="form-select form-select-sm" id="filter_status" name="status_perbaikan">
+                        <option value="">Semua Status</option>
+                        <option value="belum_diperbaiki"
+                            {{ $filterStatusPerbaikan === 'belum_diperbaiki' ? 'selected' : '' }}>Belum Diperbaiki</option>
+                        <option value="dalam_perbaikan"
+                            {{ $filterStatusPerbaikan === 'dalam_perbaikan' ? 'selected' : '' }}>Dalam Perbaikan</option>
+                        <option value="sudah_diperbaiki"
+                            {{ $filterStatusPerbaikan === 'sudah_diperbaiki' ? 'selected' : '' }}>Sudah Diperbaiki</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button type="submit" class="btn btn-primary btn-sm">Filter Peta</button>
+                    <a href="{{ route('map.overview') }}" class="btn btn-secondary btn-sm ms-2">Reset Filter</a>
+                </div>
+            </form>
+
             <div id="mapid"></div>
         </div>
     </div>
@@ -118,8 +165,8 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            var map = L.map('mapid').setView([-7.634317316995929, 110.74809228068428],
-                16); // Pusat di Kantor Desa Jelobo, zoom out sedikit untuk overview
+            var map = L.map('mapid').setView([-7.701469, 110.746014],
+            14); // Pusat di Kantor Desa Jelobo, zoom out sedikit untuk overview
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -131,56 +178,75 @@
 
             console.log("Roads GeoJSON Data for Map:", roadsData); // Debugging: lihat data di konsol
 
-            // Fungsi untuk mendapatkan warna berdasarkan prioritas
-            function getColorForPriority(priority) {
-                switch (priority) {
-                    case 'tinggi':
-                        return 'red';
-                    case 'sedang':
-                        return 'orange';
-                    case 'rendah':
-                        return 'green';
-                    case 'belum diklasifikasi':
-                        return 'gray';
-                    default:
-                        return 'blue'; // Default untuk kondisi baik atau tidak ada laporan
+            // Fungsi untuk mendapatkan warna berdasarkan prioritas atau kondisi awal
+            function getColorForPath(properties) {
+                // Prioritaskan prioritas klasifikasi jika ada
+                if (properties.prioritas_klasifikasi && properties.prioritas_klasifikasi !== 'tidak ada' &&
+                    properties.prioritas_klasifikasi !== 'belum diklasifikasi') {
+                    switch (properties.prioritas_klasifikasi) {
+                        case 'tinggi':
+                            return 'red';
+                        case 'sedang':
+                            return 'orange';
+                        case 'rendah':
+                            return 'green';
+                        default:
+                            return 'gray'; // Fallback
+                    }
+                } else if (properties.kondisi_awal) {
+                    // Jika tidak ada prioritas, gunakan kondisi awal jalan
+                    switch (properties.kondisi_awal) {
+                        case 'rusak berat':
+                            return 'red';
+                        case 'rusak sedang':
+                            return 'orange';
+                        case 'rusak ringan':
+                            return 'yellow';
+                        case 'baik':
+                            return 'green';
+                        default:
+                            return 'blue'; // Default
+                    }
                 }
+                return 'blue'; // Default jika tidak ada data sama sekali
             }
 
             // Fungsi untuk membuat pop-up content
             function createPopupContent(properties) {
-                let content = `<h5>${properties.nama_jalan}</h5>`;
+                let content = `<div class="info-box">`;
+                content += `<h5>${properties.nama_jalan}</h5>`;
                 content += `<p><strong>Panjang:</strong> ${properties.panjang_jalan} m</p>`;
                 content += `<p><strong>Kondisi Awal:</strong> ${properties.kondisi_awal}</p>`;
                 content += `<p><strong>Regional:</strong> ${properties.regional} (${properties.regional_tipe})</p>`;
 
+                let priorityText = properties.prioritas_klasifikasi;
                 let priorityClass = '';
-                if (properties.prioritas_klasifikasi === 'tinggi') priorityClass = 'priority-high';
-                else if (properties.prioritas_klasifikasi === 'sedang') priorityClass = 'priority-medium';
-                else if (properties.prioritas_klasifikasi === 'rendah') priorityClass = 'priority-low';
-                else if (properties.prioritas_klasifikasi === 'belum diklasifikasi') priorityClass =
-                    'priority-unclassified';
+                if (priorityText === 'tinggi') priorityClass = 'priority-high';
+                else if (priorityText === 'sedang') priorityClass = 'priority-medium';
+                else if (priorityText === 'rendah') priorityClass = 'priority-low';
+                else if (priorityText === 'belum diklasifikasi') priorityClass = 'priority-unclassified';
 
                 content +=
-                    `<p><strong>Prioritas:</strong> <span class="priority-badge ${priorityClass}">${properties.prioritas_klasifikasi.toUpperCase()}</span></p>`;
+                    `<p><strong>Prioritas:</strong> <span class="priority-badge ${priorityClass}">${priorityText.toUpperCase()}</span></p>`;
 
                 if (properties.laporan_kerusakan && properties.laporan_kerusakan.length > 0) {
-                    content += `<h6>Laporan Kerusakan (${properties.laporan_kerusakan.length} Laporan):</h6>`;
-                    properties.laporan_kerusakan.forEach(laporan => {
+                    content += `<h6>Laporan Kerusakan Terbaru:</h6>`;
+                    // Ambil hanya laporan terbaru (misalnya 1 atau 2 laporan terakhir)
+                    const latestReports = properties.laporan_kerusakan.slice(0, 1); // Hanya 1 laporan terbaru
+                    latestReports.forEach(laporan => {
+                        let statusText = laporan.status_perbaikan;
                         let statusClass = '';
-                        if (laporan.status_perbaikan === 'belum diperbaiki') statusClass = 'status-belum';
-                        else if (laporan.status_perbaikan === 'dalam perbaikan') statusClass =
-                            'status-dalam';
-                        else if (laporan.status_perbaikan === 'sudah diperbaiki') statusClass =
-                            'status-sudah';
+                        if (statusText === 'belum diperbaiki') statusClass = 'status-belum';
+                        else if (statusText === 'dalam perbaikan') statusClass = 'status-dalam';
+                        else if (statusText === 'sudah diperbaiki') statusClass = 'status-sudah';
 
-                        content += `<div class="mb-2 info-box">`; // Nested info-box for reports
+                        content += `<div class="mb-2 nested-info-box">`; // Nested info-box for reports
                         content += `<p><strong>Tanggal:</strong> ${laporan.tanggal_lapor}</p>`;
                         content += `<p><strong>Tingkat:</strong> ${laporan.tingkat_kerusakan}</p>`;
                         content +=
                             `<p><strong>Prioritas Laporan:</strong> ${laporan.prioritas ? `<span class="priority-badge ${priorityClass}">${laporan.prioritas.toUpperCase()}</span>` : 'Belum Diklasifikasi'}</p>`;
                         content +=
-                            `<p><strong>Status:</strong> <span class="status-badge ${statusClass}">${laporan.status_perbaikan.toUpperCase()}</span></p>`;
+                            `<p><strong>Status:</strong> <span class="status-badge ${statusClass}">${statusText.toUpperCase()}</span></p>`;
                         if (laporan.deskripsi) content +=
                             `<p><strong>Deskripsi:</strong> ${laporan.deskripsi}</p>`;
                         if (laporan.foto_url) {
@@ -189,36 +255,49 @@
                         }
                         content += `</div>`;
                     });
+                    if (properties.laporan_kerusakan.length > 1) {
+                        content += `<small>(${properties.laporan_kerusakan.length - 1} laporan lain)</small>`;
+                    }
+                    content +=
+                        `<p><a href="{{ route('kerusakan-jalan.index') }}?jalan_id=${properties.id}" target="_blank">Lihat Semua Laporan Jalan Ini</a></p>`;
+
                 } else {
                     content += `<p>Tidak ada laporan kerusakan jalan.</p>`;
                 }
-                return `<div class="info-box">${content}</div>`;
+                return content;
             }
 
+            // Tambahkan GeoJSON Layer ke Peta
             L.geoJSON(roadsData, {
                 style: function(feature) {
                     return {
-                        color: getColorForPriority(feature.properties.prioritas_klasifikasi),
+                        color: getColorForPath(feature
+                        .properties), // Panggil getColorForPath dengan properties
                         weight: 5,
                         opacity: 0.7
                     };
                 },
                 onEachFeature: function(feature, layer) {
-                    if (feature.properties) {
-                        layer.bindPopup(createPopupContent(feature.properties));
+                    if (feature.properties && feature.geometry && feature.geometry.coordinates &&
+                        feature.geometry.coordinates.length > 0) {
+                        layer.bindPopup(createPopupContent(feature.properties), {
+                            maxWidth: 300 // Lebar maksimum pop-up
+                        });
                     }
                 }
             }).addTo(map);
 
             // Opsional: Atur ulang tampilan peta agar semua fitur terlihat jika diinginkan
-            // if (roadsData.length > 0) {
-            //     var bounds = L.featureGroup(
-            //         roadsData.map(function(feature) {
-            //             return L.geoJSON(feature);
-            //         })
-            //     ).getBounds();
-            //     map.fitBounds(bounds);
-            // }
+            // Pastikan ada data jalan sebelum mencoba fitBounds
+            if (roadsData.length > 0) {
+                try {
+                    var allFeatures = L.geoJSON(roadsData);
+                    map.fitBounds(allFeatures.getBounds());
+                } catch (e) {
+                    console.error("Error fitting map bounds to all features:", e);
+                    map.setView([-7.701469, 110.746014], 14); // Fallback ke Jelobo jika ada error
+                }
+            }
         });
     </script>
 @endpush
