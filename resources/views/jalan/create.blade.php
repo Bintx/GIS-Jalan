@@ -7,19 +7,14 @@
     <style>
         #mapid {
             height: 400px;
-            /* Tinggi peta */
             width: 100%;
-            /* Lebar peta */
             border-radius: 8px;
-            /* Sudut melengkung */
         }
 
         .leaflet-container {
             background: #fff;
-            /* Pastikan background peta cerah */
         }
     </style>
-    {{-- Leaflet CSS dan Leaflet Draw CSS dimuat di layouts/app.blade.php dari CDN --}}
 @endpush
 
 @section('content')
@@ -80,22 +75,66 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
+
+                {{-- Bagian Dropdown Regional --}}
                 <div class="mb-3">
-                    <label for="regional_id" class="form-label">Regional</label>
-                    <select class="form-select @error('regional_id') is-invalid @enderror" id="regional_id"
-                        name="regional_id" required>
-                        <option value="">Pilih Regional</option>
-                        @foreach ($regionals as $regional)
-                            <option value="{{ $regional->id }}"
-                                {{ old('regional_id') == $regional->id ? 'selected' : '' }}>
-                                {{ $regional->nama_regional }} ({{ $regional->tipe_regional }})
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('regional_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                    <label class="form-label">Regional</label>
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label for="rt_regional_id" class="form-label text-sm">RT</label>
+                            <select class="form-select @error('rt_regional_id') is-invalid @enderror" id="rt_regional_id"
+                                name="rt_regional_id" required>
+                                <option value="">Pilih RT</option>
+                                @foreach ($rtRegionals as $regional)
+                                    <option value="{{ $regional->id }}"
+                                        {{ old('rt_regional_id') == $regional->id ? 'selected' : '' }}>
+                                        {{ $regional->nama_regional }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('rt_regional_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label for="rw_regional_id" class="form-label text-sm">RW</label>
+                            <select class="form-select @error('rw_regional_id') is-invalid @enderror" id="rw_regional_id"
+                                name="rw_regional_id" required>
+                                <option value="">Pilih RW</option>
+                                @foreach ($rwRegionals as $regional)
+                                    <option value="{{ $regional->id }}"
+                                        {{ old('rw_regional_id') == $regional->id ? 'selected' : '' }}>
+                                        {{ $regional->nama_regional }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('rw_regional_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label for="dusun_regional_id" class="form-label text-sm">Dusun</label>
+                            <select class="form-select @error('dusun_regional_id') is-invalid @enderror"
+                                id="dusun_regional_id" name="dusun_regional_id" required>
+                                <option value="">Pilih Dusun</option>
+                                @foreach ($dusunRegionals as $regional)
+                                    <option value="{{ $regional->id }}"
+                                        {{ old('dusun_regional_id') == $regional->id ? 'selected' : '' }}>
+                                        {{ $regional->nama_regional }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('dusun_regional_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    {{-- Pesan error umum jika validasi gagal untuk salah satu dropdown --}}
+                    @if ($errors->has('rt_regional_id') || $errors->has('rw_regional_id') || $errors->has('dusun_regional_id'))
+                        <div class="text-danger mt-1">Pastikan Anda memilih RT, RW, dan Dusun.</div>
+                    @endif
                 </div>
+                {{-- Akhir Bagian Dropdown Regional --}}
 
                 <div class="mb-3">
                     <label class="form-label">Gambar Garis Jalan (Peta)</label>
@@ -119,78 +158,76 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            // Inisialisasi peta Leaflet dengan setView awal
             var map = L.map('mapid').setView([-7.634317316995929, 110.74809228068428],
-            16); // Lintang, Bujur, Zoom Level-7.634317316995929, 110.74809228068428
-
+                16);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
 
-            // Perintah ini sering membantu jika peta tidak dirender dengan benar di awal
             map.invalidateSize();
 
             var drawnItems = new L.FeatureGroup();
             map.addLayer(drawnItems);
 
-            // Karena L.Control.Draw sekarang sudah dimuat di app.blade.php dan tidak ada error,
-            // kita bisa langsung menginisialisasi drawControl tanpa setTimeout
-            var drawControl = new L.Control.Draw({
-                edit: {
-                    featureGroup: drawnItems,
-                    poly: {
-                        allowIntersection: false // Tidak mengizinkan polyline bersilangan dengan dirinya sendiri
-                    }
-                },
-                draw: {
-                    polygon: false, // Nonaktifkan menggambar poligon
-                    marker: false, // Nonaktifkan menggambar marker
-                    circlemarker: false, // Nonaktifkan menggambar circlemarker
-                    circle: false, // Nonaktifkan menggambar lingkaran
-                    rectangle: false, // Nonaktifkan menggambar persegi
-                    polyline: { // Hanya izinkan menggambar Polyline (garis)
-                        shapeOptions: {
-                            color: '#f30' // Warna garis saat digambar
+            function initializeDrawControl() {
+                if (typeof L.Control.Draw !== 'undefined') {
+                    var drawControl = new L.Control.Draw({
+                        edit: {
+                            featureGroup: drawnItems,
+                            poly: {
+                                allowIntersection: false
+                            }
                         },
-                        metric: true // Menampilkan panjang dalam metrik
-                    }
-                }
-            });
-            map.addControl(drawControl);
+                        draw: {
+                            polygon: false,
+                            marker: false,
+                            circlemarker: false,
+                            circle: false,
+                            rectangle: false,
+                            polyline: {
+                                shapeOptions: {
+                                    color: '#f30'
+                                },
+                                metric: true
+                            }
+                        }
+                    });
+                    map.addControl(drawControl);
 
-            // Event listener saat garis selesai digambar
-            map.on(L.Draw.Event.CREATED, function(event) {
-                var layer = event.layer;
-                drawnItems.clearLayers(); // Hapus garis/objek sebelumnya jika ada
-                drawnItems.addLayer(layer); // Tambahkan garis baru ke peta
-
-                // Ambil koordinat garis yang digambar
-                var latlngs = layer.getLatLngs();
-                var coords = latlngs.map(function(latlng) {
-                    return [latlng.lat, latlng.lng]; // Format [latitude, longitude]
-                });
-                // Simpan koordinat sebagai string JSON ke input tersembunyi
-                document.getElementById('geometri_coords').value = JSON.stringify(coords);
-            });
-
-            // Event listener saat garis diedit
-            map.on(L.Draw.Event.EDITED, function(event) {
-                event.layers.eachLayer(function(layer) {
-                    if (layer instanceof L.Polyline) { // Pastikan yang diedit adalah Polyline
+                    map.on(L.Draw.Event.CREATED, function(event) {
+                        var layer = event.layer;
+                        drawnItems.clearLayers();
+                        drawnItems.addLayer(layer);
                         var latlngs = layer.getLatLngs();
                         var coords = latlngs.map(function(latlng) {
                             return [latlng.lat, latlng.lng];
                         });
-                        // Perbarui koordinat di input tersembunyi
                         document.getElementById('geometri_coords').value = JSON.stringify(coords);
-                    }
-                });
-            });
+                    });
 
-            // Event listener untuk menghapus gambar
-            map.on(L.Draw.Event.DELETED, function(event) {
-                document.getElementById('geometri_coords').value = '[]'; // Kosongkan input tersembunyi
-            });
+                    map.on(L.Draw.Event.EDITED, function(event) {
+                        event.layers.eachLayer(function(layer) {
+                            if (layer instanceof L.Polyline) {
+                                var latlngs = layer.getLatLngs();
+                                var coords = latlngs.map(function(latlng) {
+                                    return [latlng.lat, latlng.lng];
+                                });
+                                document.getElementById('geometri_coords').value = JSON.stringify(
+                                    coords);
+                            }
+                        });
+                    });
+
+                    map.on(L.Draw.Event.DELETED, function(event) {
+                        document.getElementById('geometri_coords').value = '[]';
+                    });
+                } else {
+                    console.warn("L.Control.Draw belum terdefinisi. Mencoba lagi dalam 100ms...");
+                    setTimeout(initializeDrawControl, 100);
+                }
+            }
+
+            initializeDrawControl();
         });
     </script>
 @endpush

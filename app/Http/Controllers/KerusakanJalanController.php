@@ -64,7 +64,8 @@ class KerusakanJalanController extends Controller
      */
     public function create()
     {
-        $jalans = Jalan::all();
+        // Muat relasi regional, rwRegional, dan dusunRegional untuk setiap jalan
+        $jalans = Jalan::with(['regional', 'rwRegional', 'dusunRegional'])->get(); // <-- PERUBAHAN DI SINI
         return view('kerusakan_jalan.create', compact('jalans'));
     }
 
@@ -107,8 +108,7 @@ class KerusakanJalanController extends Controller
             'klasifikasi_prioritas' => $prioritasKlasifikasi,
         ]);
 
-        // Mengganti with('success', ...) menjadi with('success', ...) untuk SweetAlert2
-        return redirect()->route('kerusakan-jalan.index')->with('success', 'Laporan berhasil ditambahkan dan diklasifikasikan sebagai prioritas ' . ucfirst($prioritasKlasifikasi) . '!');
+        return redirect()->route('kerusakan-jalan.index')->with('success', 'Laporan kerusakan jalan berhasil ditambahkan dan diklasifikasikan sebagai prioritas ' . ucfirst($prioritasKlasifikasi) . '!');
     }
 
     /**
@@ -125,13 +125,8 @@ class KerusakanJalanController extends Controller
      */
     public function edit(KerusakanJalan $kerusakanJalan)
     {
-        if (Auth::user()->isAdmin() || (Auth::user()->isPejabatDesa() && Auth::id() === $kerusakanJalan->user_id)) {
-            $jalans = Jalan::all();
-            return view('kerusakan_jalan.edit', compact('kerusakanJalan', 'jalans'));
-        }
-
-        // Mengganti abort(403) menjadi redirect dengan pesan error untuk SweetAlert2
-        return redirect()->route('kerusakan-jalan.index')->with('error', 'Akses Dilarang. Anda tidak memiliki izin untuk mengedit laporan ini.');
+        $jalans = Jalan::all();
+        return view('kerusakan_jalan.edit', compact('kerusakanJalan', 'jalans'));
     }
 
     /**
@@ -139,59 +134,55 @@ class KerusakanJalanController extends Controller
      */
     public function update(Request $request, KerusakanJalan $kerusakanJalan, NaiveBayesClassifier $classifier)
     {
-        if (Auth::user()->isAdmin() || (Auth::user()->isPejabatDesa() && Auth::id() === $kerusakanJalan->user_id)) {
-            $validationRules = [
-                'jalan_id' => 'required|exists:jalan,id',
-                'tanggal_lapor' => 'required|date',
-                'tingkat_kerusakan' => ['required', 'string', Rule::in(['ringan', 'sedang', 'berat'])],
-                'tingkat_lalu_lintas' => ['required', 'string', Rule::in(['rendah', 'sedang', 'tinggi'])],
-                'panjang_ruas_rusak' => 'required|numeric|min:0',
-                'deskripsi_kerusakan' => 'nullable|string|max:1000',
-                'foto_kerusakan' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Max 2MB
-            ];
+        $validationRules = [
+            'jalan_id' => 'required|exists:jalan,id',
+            'tanggal_lapor' => 'required|date',
+            'tingkat_kerusakan' => ['required', 'string', Rule::in(['ringan', 'sedang', 'berat'])],
+            'tingkat_lalu_lintas' => ['required', 'string', Rule::in(['rendah', 'sedang', 'tinggi'])],
+            'panjang_ruas_rusak' => 'required|numeric|min:0',
+            'deskripsi_kerusakan' => 'nullable|string|max:1000',
+            'foto_kerusakan' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Max 2MB
+        ];
 
-            if (Auth::user()->isAdmin()) {
-                $validationRules['status_perbaikan'] = ['required', Rule::in(['belum diperbaiki', 'dalam perbaikan', 'sudah diperbaiki'])];
-                $validationRules['klasifikasi_prioritas'] = ['nullable', Rule::in(['tinggi', 'sedang', 'rendah'])];
-            }
-
-            // Jika validasi gagal, Laravel otomatis akan redirect dengan $errors
-            $validated = $request->validate($validationRules);
-
-            $fotoPath = $kerusakanJalan->foto_kerusakan;
-
-            if ($request->hasFile('foto_kerusakan')) {
-                if ($kerusakanJalan->foto_kerusakan) {
-                    Storage::disk('public')->delete($kerusakanJalan->foto_kerusakan);
-                }
-                $fotoPath = $request->file('foto_kerusakan')->store('kerusakan_jalan_photos', 'public');
-            }
-
-            $dataToUpdate = [
-                'jalan_id' => $validated['jalan_id'],
-                'tanggal_lapor' => $validated['tanggal_lapor'],
-                'tingkat_kerusakan' => $validated['tingkat_kerusakan'],
-                'tingkat_lalu_lintas' => $validated['tingkat_lalu_lintas'],
-                'panjang_ruas_rusak' => $validated['panjang_ruas_rusak'],
-                'deskripsi_kerusakan' => $validated['deskripsi_kerusakan'],
-                'foto_kerusakan' => $fotoPath,
-            ];
-
-            $prioritasKlasifikasi = $classifier->classify(
-                $validated['tingkat_kerusakan'],
-                $validated['tingkat_lalu_lintas'],
-                $validated['panjang_ruas_rusak']
-            );
-            $dataToUpdate['klasifikasi_prioritas'] = $prioritasKlasifikasi;
-
-            $dataToUpdate['status_perbaikan'] = Auth::user()->isAdmin() ? $validated['status_perbaikan'] : $kerusakanJalan->status_perbaikan;
-
-            $kerusakanJalan->update($dataToUpdate);
-
-            return redirect()->route('kerusakan-jalan.index')->with('success', 'Laporan berhasil diperbarui dan diklasifikasikan sebagai prioritas ' . ucfirst($prioritasKlasifikasi) . '!');
+        if (Auth::user()->isAdmin()) {
+            $validationRules['status_perbaikan'] = ['required', Rule::in(['belum diperbaiki', 'dalam perbaikan', 'sudah diperbaiki'])];
+            $validationRules['klasifikasi_prioritas'] = ['nullable', Rule::in(['tinggi', 'sedang', 'rendah'])];
         }
 
-        return redirect()->route('kerusakan-jalan.index')->with('error', 'Akses Dilarang. Anda tidak memiliki izin untuk memperbarui laporan ini.');
+        $validated = $request->validate($validationRules);
+
+        $fotoPath = $kerusakanJalan->foto_kerusakan;
+
+        if ($request->hasFile('foto_kerusakan')) {
+            if ($kerusakanJalan->foto_kerusakan) {
+                Storage::disk('public')->delete($kerusakanJalan->foto_kerusakan);
+            }
+            $fotoPath = $request->file('foto_kerusakan')->store('kerusakan_jalan_photos', 'public');
+        }
+
+        $dataToUpdate = [
+            'jalan_id' => $validated['jalan_id'],
+            'tanggal_lapor' => $validated['tanggal_lapor'],
+            'tingkat_kerusakan' => $validated['tingkat_kerusakan'],
+            'tingkat_lalu_lintas' => $validated['tingkat_lalu_lintas'],
+            'panjang_ruas_rusak' => $validated['panjang_ruas_rusak'],
+            'deskripsi_kerusakan' => $validated['deskripsi_kerusakan'],
+            'foto_kerusakan' => $fotoPath,
+        ];
+
+        $prioritasKlasifikasi = $classifier->classify(
+            $validated['tingkat_kerusakan'],
+            $validated['tingkat_lalu_lintas'],
+            $validated['panjang_ruas_rusak']
+        );
+        $dataToUpdate['klasifikasi_prioritas'] = $prioritasKlasifikasi;
+
+        $dataToUpdate['status_perbaikan'] = Auth::user()->isAdmin() ? $validated['status_perbaikan'] : $kerusakanJalan->status_perbaikan;
+
+
+        $kerusakanJalan->update($dataToUpdate);
+
+        return redirect()->route('kerusakan-jalan.index')->with('success', 'Laporan kerusakan jalan berhasil diperbarui dan diklasifikasikan sebagai prioritas ' . ucfirst($prioritasKlasifikasi) . '!');
     }
 
     /**
@@ -204,7 +195,7 @@ class KerusakanJalanController extends Controller
                 Storage::disk('public')->delete($kerusakanJalan->foto_kerusakan);
             }
             $kerusakanJalan->delete();
-            return redirect()->route('kerusakan-jalan.index')->with('success', 'Laporan berhasil dihapus!');
+            return redirect()->route('kerusakan-jalan.index')->with('success', 'Laporan kerusakan jalan berhasil dihapus!');
         }
 
         return redirect()->route('kerusakan-jalan.index')->with('error', 'Akses Dilarang. Anda tidak memiliki izin untuk menghapus laporan ini.');
@@ -216,7 +207,8 @@ class KerusakanJalanController extends Controller
      */
     public function getJalanData(Jalan $jalan)
     {
-        $jalan->load('regional');
+        // Muat relasi regional, rwRegional, dan dusunRegional
+        $jalan->load(['regional', 'rwRegional', 'dusunRegional']);
 
         $tingkatKerusakanMap = [
             'baik' => '',
@@ -230,10 +222,12 @@ class KerusakanJalanController extends Controller
             'nama_jalan' => $jalan->nama_jalan,
             'panjang_jalan' => $jalan->panjang_jalan,
             'kondisi_jalan_master' => $jalan->kondisi_jalan,
-            'regional_nama' => $jalan->regional->nama_regional ?? 'N/A',
-            'regional_tipe' => $jalan->regional->tipe_regional ?? 'N/A',
+            // Tambahkan nama regional lengkap
+            'regional_rt_nama' => $jalan->regional->nama_regional ?? 'N/A',
+            'regional_rw_nama' => $jalan->rwRegional->nama_regional ?? 'N/A',
+            'regional_dusun_nama' => $jalan->dusunRegional->nama_regional ?? 'N/A',
             'suggested_tingkat_kerusakan' => $tingkatKerusakanMap[$jalan->kondisi_jalan] ?? '',
-            'suggested_panjang_ruas_rusak' => $jalan->panang_jalan,
+            'suggested_panjang_ruas_rusak' => $jalan->panjang_jalan,
         ]);
     }
 

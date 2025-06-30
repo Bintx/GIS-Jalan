@@ -54,9 +54,16 @@
                 <dt class="col-sm-4">Nama Jalan:</dt>
                 <dd class="col-sm-8">{{ $kerusakanJalan->jalan->nama_jalan ?? 'Jalan Tidak Ditemukan' }}</dd>
 
-                <dt class="col-sm-4">Regional Jalan:</dt>
-                <dd class="col-sm-8">{{ $kerusakanJalan->jalan->regional->nama_regional ?? 'N/A' }}
-                    ({{ $kerusakanJalan->jalan->regional->tipe_regional ?? 'N/A' }})</dd>
+                {{-- Tampilkan Regional RT, RW, Dusun secara terpisah --}}
+                <dt class="col-sm-4">Regional RT:</dt>
+                <dd class="col-sm-8">{{ $kerusakanJalan->jalan->regional->nama_regional ?? 'N/A' }}</dd>
+
+                <dt class="col-sm-4">Regional RW:</dt>
+                <dd class="col-sm-8">{{ $kerusakanJalan->jalan->rwRegional->nama_regional ?? 'N/A' }}</dd>
+
+                <dt class="col-sm-4">Regional Dusun:</dt>
+                <dd class="col-sm-8">{{ $kerusakanJalan->jalan->dusunRegional->nama_regional ?? 'N/A' }}</dd>
+                {{-- Akhir tampilan Regional terpisah --}}
 
                 <dt class="col-sm-4">Tanggal Lapor:</dt>
                 <dd class="col-sm-8">{{ $kerusakanJalan->tanggal_lapor->format('d M Y') }}</dd>
@@ -93,7 +100,7 @@
                         <span class="badge bg-danger">Tinggi</span>
                     @elseif ($kerusakanJalan->klasifikasi_prioritas == 'sedang')
                         <span class="badge bg-warning">Sedang</span>
-                    @elseif ($kerusakanJalan->klasifikasi_prioritas == 'rendah')
+                    @elseif ($laporan->klasifikasi_prioritas == 'rendah')
                         <span class="badge bg-success">Rendah</span>
                     @else
                         <span class="badge bg-secondary">Belum Diklasifikasi</span>
@@ -131,8 +138,7 @@
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
 
-            // Perintah ini sering membantu jika peta tidak dirender dengan benar di awal
-            map.invalidateSize();
+            map.invalidateSize(); // Memastikan peta dirender dengan benar
 
             // Ambil data geometri dari jalan terkait laporan
             var jalanGeometri = {!! json_encode($kerusakanJalan->jalan->geometri_json) !!};

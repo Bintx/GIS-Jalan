@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         // Panggil seeder pengguna
         $this->call([
             RolesAndAdminSeeder::class,
+            RegionalSeeder::class,
             // Jika Anda memiliki seeder lain yang ingin dijalankan di masa depan, tambahkan di sini:
             // RegionalSeeder::class,
             // JalanSeeder::class,

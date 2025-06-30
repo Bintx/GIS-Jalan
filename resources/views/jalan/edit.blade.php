@@ -79,22 +79,65 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
+
+                {{-- Bagian Dropdown Regional --}}
                 <div class="mb-3">
-                    <label for="regional_id" class="form-label">Regional</label>
-                    <select class="form-select @error('regional_id') is-invalid @enderror" id="regional_id"
-                        name="regional_id" required>
-                        <option value="">Pilih Regional</option>
-                        @foreach ($regionals as $regional)
-                            <option value="{{ $regional->id }}"
-                                {{ old('regional_id', $jalan->regional_id) == $regional->id ? 'selected' : '' }}>
-                                {{ $regional->nama_regional }} ({{ $regional->tipe_regional }})
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('regional_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                    <label class="form-label">Regional</label>
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label for="rt_regional_id" class="form-label text-sm">RT</label>
+                            <select class="form-select @error('rt_regional_id') is-invalid @enderror" id="rt_regional_id"
+                                name="rt_regional_id" required>
+                                <option value="">Pilih RT</option>
+                                @foreach ($rtRegionals as $regional)
+                                    <option value="{{ $regional->id }}"
+                                        {{ old('rt_regional_id', $selectedRtId) == $regional->id ? 'selected' : '' }}>
+                                        {{ $regional->nama_regional }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('rt_regional_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label for="rw_regional_id" class="form-label text-sm">RW</label>
+                            <select class="form-select @error('rw_regional_id') is-invalid @enderror" id="rw_regional_id"
+                                name="rw_regional_id" required>
+                                <option value="">Pilih RW</option>
+                                @foreach ($rwRegionals as $regional)
+                                    <option value="{{ $regional->id }}"
+                                        {{ old('rw_regional_id', $selectedRwId) == $regional->id ? 'selected' : '' }}>
+                                        {{ $regional->nama_regional }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('rw_regional_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label for="dusun_regional_id" class="form-label text-sm">Dusun</label>
+                            <select class="form-select @error('dusun_regional_id') is-invalid @enderror"
+                                id="dusun_regional_id" name="dusun_regional_id" required>
+                                <option value="">Pilih Dusun</option>
+                                @foreach ($dusunRegionals as $regional)
+                                    <option value="{{ $regional->id }}"
+                                        {{ old('dusun_regional_id', $selectedDusunId) == $regional->id ? 'selected' : '' }}>
+                                        {{ $regional->nama_regional }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('dusun_regional_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    @if ($errors->has('rt_regional_id') || $errors->has('rw_regional_id') || $errors->has('dusun_regional_id'))
+                        <div class="text-danger mt-1">Pastikan Anda memilih RT, RW, dan Dusun.</div>
+                    @endif
                 </div>
+                {{-- Akhir Bagian Dropdown Regional --}}
 
                 <div class="mb-3">
                     <label class="form-label">Gambar Garis Jalan (Peta)</label>
@@ -122,6 +165,8 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
+
+            map.invalidateSize();
 
             var drawnItems = new L.FeatureGroup();
             map.addLayer(drawnItems);
@@ -156,13 +201,11 @@
                         var polyline = L.polyline(existingGeomCoords, {
                             color: 'red'
                         }).addTo(drawnItems);
-                        map.fitBounds(polyline.getBounds()); // Sesuaikan tampilan peta agar garis terlihat
+                        map.fitBounds(polyline.getBounds());
                     } else {
-                        // Jika tidak ada garis yang ada, set view ke Kantor Desa Jelobo
-                        map.setView([-7.701469, 110.746014], 16); // Lintang, Bujur, Zoom Level
+                        map.setView([-7.701469, 110.746014], 16);
                     }
 
-                    // Event listeners
                     map.on(L.Draw.Event.CREATED, function(event) {
                         var layer = event.layer;
                         drawnItems.clearLayers();
@@ -197,6 +240,8 @@
             }
 
             initializeDrawControl();
+
+            // Hapus JavaScript untuk menonaktifkan dropdown lain, karena sekarang semua wajib diisi
         });
     </script>
 @endpush
