@@ -58,22 +58,11 @@
                 {{-- Bagian Asli Template Wowdash (jika tidak digunakan, bisa dihapus) --}}
                 <li class="sidebar-menu-group-title">Application</li>
 
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
+                <li>
+                    <a href="{{ route('users.index') }}">
                         <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
-                        <span>Users</span>
+                        <span>Manajemen Pengguna</span>
                     </a>
-                    <ul class="sidebar-submenu">
-                    </ul>
-                </li>
-
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="icon-park-outline:setting-two" class="menu-icon"></iconify-icon>
-                        <span>Settings</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                    </ul>
                 </li>
             </ul>
         @endcan
