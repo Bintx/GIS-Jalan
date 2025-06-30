@@ -2,18 +2,17 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\File;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public const HOME = '/'; // Ini yang akan mengarahkan ke root URL setelah login
     /**
      * Register any application services.
      */
     public function register(): void
     {
-        $this->app->alias('files', File::class);
+        //
     }
 
     /**
@@ -21,6 +20,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::define('admin', function ($user) {
+            return $user->role === 'admin'; // pakai === dan 'role'
+        });
+
+        Gate::define('pejabat_desa', function ($user) {
+            return $user->role === 'pejabat_desa';
+        });
     }
 }

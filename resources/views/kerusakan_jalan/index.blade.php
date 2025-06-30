@@ -30,9 +30,23 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="card-title mb-0">Daftar Laporan Kerusakan</h5>
                 <div>
-                    <a href="{{ route('kerusakan-jalan.create') }}" class="btn btn-primary btn-sm me-2">Tambah Laporan</a>
-                    <a href="{{ route('kerusakan-jalan.export-pdf') }}" class="btn btn-info btn-sm me-2">Export PDF</a>
-                    <a href="{{ route('kerusakan-jalan.export-excel') }}" class="btn btn-success btn-sm">Export Excel</a>
+                    {{-- Tombol Tambah Laporan (Admin & Pejabat Desa bisa masuk route ini) --}}
+                    @can('pejabat_desa')
+                        {{-- Menggunakan @can('pejabat_desa') --}}
+                        <a href="{{ route('kerusakan-jalan.create') }}" class="btn btn-primary btn-sm me-2">Tambah Laporan</a>
+                    @endcan
+
+                    {{-- Tombol Export PDF (Hanya Admin) --}}
+                    @can('admin')
+                        {{-- Menggunakan @can('admin') --}}
+                        <a href="{{ route('kerusakan-jalan.export-pdf') }}" class="btn btn-info btn-sm me-2">Export PDF</a>
+                    @endcan
+
+                    {{-- Tombol Export Excel (Hanya Admin) --}}
+                    @can('admin')
+                        {{-- Menggunakan @can('admin') --}}
+                        <a href="{{ route('kerusakan-jalan.export-excel') }}" class="btn btn-success btn-sm">Export Excel</a>
+                    @endcan
                 </div>
             </div>
 
@@ -41,7 +55,6 @@
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label for="filter_nama_jalan" class="form-label text-sm">Nama Jalan</label>
-                        {{-- Menggunakan input teks biasa untuk pencarian nama jalan --}}
                         <input type="text" class="form-control form-control-sm" id="filter_nama_jalan" name="nama_jalan"
                             value="{{ $filterNamaJalan }}" placeholder="Cari nama jalan...">
                     </div>
@@ -94,7 +107,6 @@
                         Filter</a>
                 </div>
             </form>
-            {{-- End Filter Form --}}
 
             <div class="table-responsive">
                 <table class="table table-bordered table-hover">
@@ -141,18 +153,18 @@
                                 <td>
                                     <a href="{{ route('kerusakan-jalan.show', $laporan->id) }}"
                                         class="btn btn-info btn-sm">Lihat</a>
-                                    {{-- Hanya admin yang bisa edit status perbaikan/prioritas --}}
-                                    @if (Auth::check() && Auth::user()->isAdmin())
-                                        <a href="{{ route('kerusakan-jalan.edit', $laporan->id) }}"
-                                            class="btn btn-warning btn-sm">Edit</a>
+                                    <a href="{{ route('kerusakan-jalan.edit', $laporan->id) }}"
+                                        class="btn btn-warning btn-sm">Edit</a>
+                                    {{-- Tombol Edit dan Hapus: Logika UI ini sesuai dengan logika di controller --}}
+                                    @if (Auth::check() && (Auth::user()->isAdmin() || (Auth::user()->isPejabatDesa() && Auth::id() === $laporan->user_id)))
+                                        <form action="{{ route('kerusakan-jalan.destroy', $laporan->id) }}" method="POST"
+                                            class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Apakah Anda yakin ingin menghapus laporan ini?')">Hapus</button>
+                                        </form>
                                     @endif
-                                    <form action="{{ route('kerusakan-jalan.destroy', $laporan->id) }}" method="POST"
-                                        class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm"
-                                            onclick="return confirm('Apakah Anda yakin ingin menghapus laporan ini?')">Hapus</button>
-                                    </form>
                                 </td>
                             </tr>
                         @empty
