@@ -24,7 +24,7 @@
                 {{-- Dropdown Data Master --}}
                 <li class="dropdown">
                     <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:folder-2-light" class="menu-icon"></iconify-icon>
+                        <iconify-icon icon="solar:document-text-outline" class="menu-icon"></iconify-icon>
                         <span>Data Master</span>
                     </a>
                     <ul class="sidebar-submenu">

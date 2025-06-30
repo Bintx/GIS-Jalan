@@ -20,12 +20,6 @@
 
     <div class="card h-100">
         <div class="card-body p-24">
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="card-title mb-0">Daftar Jalan</h5>
@@ -55,8 +49,7 @@
                                 <td>
                                     <a href="{{ route('jalan.show', $jalan->id) }}" class="btn btn-info btn-sm">Lihat</a>
                                     <a href="{{ route('jalan.edit', $jalan->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                                    <form action="{{ route('jalan.destroy', $jalan->id) }}" method="POST"
-                                        class="d-inline">
+                                    <form action="{{ route('jalan.destroy', $jalan->id) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm"

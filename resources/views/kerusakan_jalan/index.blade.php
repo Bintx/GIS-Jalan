@@ -20,21 +20,13 @@
 
     <div class="card h-100">
         <div class="card-body p-24">
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="card-title mb-0">Daftar Laporan Kerusakan</h5>
                 <div>
                     {{-- Tombol Tambah Laporan (Admin & Pejabat Desa bisa masuk route ini) --}}
-                    @can('pejabat_desa')
-                        {{-- Menggunakan @can('pejabat_desa') --}}
-                        <a href="{{ route('kerusakan-jalan.create') }}" class="btn btn-primary btn-sm me-2">Tambah Laporan</a>
-                    @endcan
+                    {{-- Menggunakan @can('pejabat_desa') --}}
+                    <a href="{{ route('kerusakan-jalan.create') }}" class="btn btn-primary btn-sm me-2">Tambah Laporan</a>
 
                     {{-- Tombol Export PDF (Hanya Admin) --}}
                     @can('admin')
@@ -156,7 +148,7 @@
                                     <a href="{{ route('kerusakan-jalan.edit', $laporan->id) }}"
                                         class="btn btn-warning btn-sm">Edit</a>
                                     {{-- Tombol Edit dan Hapus: Logika UI ini sesuai dengan logika di controller --}}
-                                    @if (Auth::check() && (Auth::user()->isAdmin() || (Auth::user()->isPejabatDesa() && Auth::id() === $laporan->user_id)))
+                                    @if (Auth::check() && Auth::user()->isAdmin())
                                         <form action="{{ route('kerusakan-jalan.destroy', $laporan->id) }}" method="POST"
                                             class="d-inline">
                                             @csrf

@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Jalan;
-use App\Models\Regional; // Perlu untuk dropdown Jalan di form laporan
+use App\Models\Regional;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Auth; // Untuk mendapatkan user yang login
+use Illuminate\Support\Facades\Auth;
 
 class JalanController extends Controller
 {
@@ -15,6 +15,7 @@ class JalanController extends Controller
      */
     public function index()
     {
+        // Untuk akses hanya Admin, sudah di route middleware
         $jalans = Jalan::with('regional')->latest()->paginate(10);
         return view('jalan.index', compact('jalans'));
     }
@@ -42,7 +43,6 @@ class JalanController extends Controller
         ]);
 
         $coordsFromFrontend = json_decode($validated['geometri_coords'], true);
-
         $geojsonCoordinates = array_map(function ($coord) {
             return [$coord[1], $coord[0]];
         }, $coordsFromFrontend);
@@ -52,7 +52,7 @@ class JalanController extends Controller
             'coordinates' => $geojsonCoordinates
         ];
 
-        $jalan = Jalan::create([
+        Jalan::create([
             'nama_jalan' => $validated['nama_jalan'],
             'panjang_jalan' => $validated['panjang_jalan'],
             'kondisi_jalan' => $validated['kondisi_jalan'],
@@ -60,7 +60,8 @@ class JalanController extends Controller
             'geometri_json' => $geojsonLineString,
         ]);
 
-        return redirect()->route('jalan.index')->with('success', 'Data Jalan berhasil ditambahkan!');
+        // Mengganti with('success', ...) menjadi with('success', ...) untuk SweetAlert2
+        return redirect()->route('jalan.index')->with('success', 'Data Jalan ' . $validated['nama_jalan'] . ' berhasil ditambahkan!');
     }
 
     /**
@@ -103,7 +104,6 @@ class JalanController extends Controller
         ]);
 
         $coordsFromFrontend = json_decode($validated['geometri_coords'], true);
-
         $geojsonCoordinates = array_map(function ($coord) {
             return [$coord[1], $coord[0]];
         }, $coordsFromFrontend);
@@ -121,7 +121,8 @@ class JalanController extends Controller
             'geometri_json' => $geojsonLineString,
         ]);
 
-        return redirect()->route('jalan.index')->with('success', 'Data Jalan berhasil diperbarui!');
+        // Mengganti with('success', ...) menjadi with('success', ...) untuk SweetAlert2
+        return redirect()->route('jalan.index')->with('success', 'Data Jalan ' . $jalan->nama_jalan . ' berhasil diperbarui!');
     }
 
     /**
@@ -130,7 +131,8 @@ class JalanController extends Controller
     public function destroy(Jalan $jalan)
     {
         $jalan->delete();
-        return redirect()->route('jalan.index')->with('success', 'Data Jalan berhasil dihapus!');
+        // Mengganti with('success', ...) menjadi with('success', ...) untuk SweetAlert2
+        return redirect()->route('jalan.index')->with('success', 'Data Jalan ' . $jalan->nama_jalan . ' berhasil dihapus!');
     }
 
     /**

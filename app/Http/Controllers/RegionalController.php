@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Regional;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class RegionalController extends Controller
 {
@@ -13,7 +14,8 @@ class RegionalController extends Controller
      */
     public function index()
     {
-        $regionals = Regional::latest()->paginate(10); // Ambil semua data regional, paginasi 10 per halaman
+        // Untuk akses hanya Admin, sudah di route middleware
+        $regionals = Regional::latest()->paginate(10);
         return view('regional.index', compact('regionals'));
     }
 
@@ -37,7 +39,8 @@ class RegionalController extends Controller
 
         Regional::create($validated);
 
-        return redirect()->route('regional.index')->with('success', 'Data Regional berhasil ditambahkan!');
+        // Mengganti with('success', ...) menjadi with('success', ...) untuk SweetAlert2
+        return redirect()->route('regional.index')->with('success', 'Data Regional ' . $validated['nama_regional'] . ' berhasil ditambahkan!');
     }
 
     /**
@@ -62,13 +65,14 @@ class RegionalController extends Controller
     public function update(Request $request, Regional $regional)
     {
         $validated = $request->validate([
-            'nama_regional' => 'required|string|max:255|unique:regional,nama_regional,' . $regional->id, // Unique kecuali ID ini
+            'nama_regional' => 'required|string|max:255|unique:regional,nama_regional,' . $regional->id,
             'tipe_regional' => ['required', 'string', Rule::in(['RT', 'RW', 'Desa', 'Kecamatan'])],
         ]);
 
         $regional->update($validated);
 
-        return redirect()->route('regional.index')->with('success', 'Data Regional berhasil diperbarui!');
+        // Mengganti with('success', ...) menjadi with('success', ...) untuk SweetAlert2
+        return redirect()->route('regional.index')->with('success', 'Data Regional ' . $regional->nama_regional . ' berhasil diperbarui!');
     }
 
     /**
@@ -77,7 +81,7 @@ class RegionalController extends Controller
     public function destroy(Regional $regional)
     {
         $regional->delete();
-
-        return redirect()->route('regional.index')->with('success', 'Data Regional berhasil dihapus!');
+        // Mengganti with('success', ...) menjadi with('success', ...) untuk SweetAlert2
+        return redirect()->route('regional.index')->with('success', 'Data Regional ' . $regional->nama_regional . ' berhasil dihapus!');
     }
 }
