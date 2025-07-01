@@ -149,7 +149,7 @@
                 {{-- Bagian yang hanya bisa diedit oleh Admin --}}
                 @if (Auth::check() && Auth::user()->isAdmin())
                     <hr class="my-4">
-                    <h5 class="card-title mb-3">Update Status & Prioritas (Hanya Admin)</h5>
+                    <h5 class="card-title mb-3">Update Status & Prioritas</h5>
 
                     <div class="mb-3">
                         <label for="status_perbaikan" class="form-label">Status Perbaikan</label>

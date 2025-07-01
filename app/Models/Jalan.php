@@ -9,37 +9,44 @@ class Jalan extends Model
 {
     use HasFactory;
 
-    // Menentukan nama tabel jika tidak mengikuti konvensi plural Laravel
     protected $table = 'jalan';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'nama_jalan',
         'panjang_jalan',
         'kondisi_jalan',
-        'regional_id',
-        'geometri_json', // Kolom untuk menyimpan data geometri dalam format JSON
+        'regional_id',      // Ini untuk ID RT
+        'rw_regional_id',   // Kolom baru untuk ID RW
+        'dusun_regional_id', // Kolom baru untuk ID Dusun
+        'geometri_json',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
-        'geometri_json' => 'array', // Mengkonversi kolom 'geometri_json' menjadi array PHP secara otomatis
+        'geometri_json' => 'array',
     ];
 
     /**
-     * Get the regional that owns the Jalan.
+     * Get the RT regional that owns the Jalan. (Using existing regional_id)
      */
     public function regional()
     {
-        return $this->belongsTo(Regional::class);
+        return $this->belongsTo(Regional::class, 'regional_id');
+    }
+
+    /**
+     * Get the RW regional that owns the Jalan. (New relationship)
+     */
+    public function rwRegional()
+    {
+        return $this->belongsTo(Regional::class, 'rw_regional_id');
+    }
+
+    /**
+     * Get the Dusun regional that owns the Jalan. (New relationship)
+     */
+    public function dusunRegional()
+    {
+        return $this->belongsTo(Regional::class, 'dusun_regional_id');
     }
 
     /**

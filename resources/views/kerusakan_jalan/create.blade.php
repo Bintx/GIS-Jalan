@@ -40,13 +40,24 @@
                         <option value="">Pilih Jalan</option>
                         @foreach ($jalans as $jalan)
                             <option value="{{ $jalan->id }}" {{ old('jalan_id') == $jalan->id ? 'selected' : '' }}>
-                                {{ $jalan->nama_jalan }} (Regional: {{ $jalan->regional->nama_regional ?? 'N/A' }})
+                                {{ $jalan->nama_jalan }}
+                                (RT: {{ $jalan->regional->nama_regional ?? 'N/A' }}
+                                RW: {{ $jalan->rwRegional->nama_regional ?? 'N/A' }}
+                                Dusun: {{ $jalan->dusunRegional->nama_regional ?? 'N/A' }})
                             </option>
                         @endforeach
                     </select>
                     @error('jalan_id')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
+                </div>
+
+                {{-- Area untuk menampilkan informasi Regional lengkap --}}
+                <div id="regionalInfoDisplay" class="mb-3" style="display: none;">
+                    <p class="form-text text-muted mb-1"><strong>Detail Regional Jalan:</strong></p>
+                    <p class="mb-0 text-sm">RT: <span id="displayRtRegional"></span></p>
+                    <p class="mb-0 text-sm">RW: <span id="displayRwRegional"></span></p>
+                    <p class="mb-0 text-sm">Dusun: <span id="displayDusunRegional"></span></p>
                 </div>
 
                 <div class="mb-3">
@@ -126,55 +137,61 @@
 @endsection
 
 @push('scripts')
-    <!-- Flatpickr JS untuk date picker - Pastikan file ini ada di public/assets/js/lib/ -->
+    <!-- Flatpickr JS untuk date picker -->
     <script src="{{ asset('assets/js/lib/flatpickr.min.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Inisialisasi Flatpickr setelah DOM siap
             flatpickr("#tanggal_lapor", {
                 dateFormat: "Y-m-d", // Format tanggal sesuai kebutuhan
             });
 
             $('#jalan_id').change(function() {
                 var jalanId = $(this).val();
-                console.log('Jalan ID dipilih:', jalanId); // Debugging: Log ID jalan
+                var regionalInfoDisplay = $('#regionalInfoDisplay');
+                var displayRtRegional = $('#displayRtRegional');
+                var displayRwRegional = $('#displayRwRegional');
+                var displayDusunRegional = $('#displayDusunRegional');
+
                 if (jalanId) {
-                    // Buat URL API menggunakan helper route Laravel
                     var apiUrl = '{{ route('api.jalan.get-data', ['jalan' => '__jalanId__']) }}'.replace(
                         '__jalanId__', jalanId);
-                    console.log('URL API:', apiUrl); // Debugging: Log URL API
 
                     $.ajax({
                         url: apiUrl,
                         type: 'GET',
                         dataType: 'json',
                         success: function(data) {
-                            console.log('Data dari API:',
-                            data); // Debugging: Log data yang diterima
-
-                            // Map kondisi_jalan (dari Jalan) ke tingkat_kerusakan (KerusakanJalan)
+                            // Auto-fill Tingkat Kerusakan dan Panjang Ruas Rusak
                             var suggestedTingkatKerusakan = data.suggested_tingkat_kerusakan;
                             $('#tingkat_kerusakan').val(suggestedTingkatKerusakan);
-
-                            // Isi panjang_ruas_rusak dengan panjang_jalan
                             $('#panjang_ruas_rusak').val(data.suggested_panjang_ruas_rusak);
 
-                            console.log('Field diisi otomatis.');
+                            // Tampilkan informasi Regional lengkap
+                            displayRtRegional.text(data.regional_rt_nama);
+                            displayRwRegional.text(data.regional_rw_nama);
+                            displayDusunRegional.text(data.regional_dusun_nama);
+                            regionalInfoDisplay.show(); // Tampilkan div info regional
+
+                            console.log('Data jalan:', data);
                         },
                         error: function(xhr, status, error) {
-                            console.error('Error fetching jalan data:', status, error, xhr);
-                            // Opsional: berikan feedback ke user jika terjadi error
-                            alert(
-                                'Gagal mengambil data jalan. Silakan coba lagi. Cek konsol untuk detail.');
+                            console.error('Error fetching jalan data:', error);
+                            alert('Gagal mengambil data jalan. Silakan coba lagi.');
+                            regionalInfoDisplay.hide(); // Sembunyikan jika error
                         }
                     });
                 } else {
-                    // Kosongkan field jika tidak ada jalan yang dipilih
+                    // Kosongkan field dan sembunyikan info regional jika tidak ada jalan yang dipilih
                     $('#tingkat_kerusakan').val('');
                     $('#panjang_ruas_rusak').val('');
-                    console.log('Jalan tidak dipilih, field dikosongkan.');
+                    regionalInfoDisplay.hide();
                 }
             });
+
+            // Jalankan event change saat halaman dimuat jika ada nilai lama (misal setelah validasi gagal)
+            if ($('#jalan_id').val()) {
+                $('#jalan_id').trigger('change');
+            }
         });
     </script>
 @endpush

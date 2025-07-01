@@ -20,28 +20,32 @@
 
     <div class="card h-100">
         <div class="card-body p-24">
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
+            {{-- Notifikasi SweetAlert2 akan muncul di sini (dari layouts/app.blade.php) --}}
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="card-title mb-0">Daftar Laporan Kerusakan</h5>
                 <div>
+                    {{-- Tombol Tambah Laporan (Admin & Pejabat Desa bisa masuk route ini) --}}
                     <a href="{{ route('kerusakan-jalan.create') }}" class="btn btn-primary btn-sm me-2">Tambah Laporan</a>
-                    <a href="{{ route('kerusakan-jalan.export-pdf') }}" class="btn btn-info btn-sm me-2">Export PDF</a>
-                    <a href="{{ route('kerusakan-jalan.export-excel') }}" class="btn btn-success btn-sm">Export Excel</a>
+
+
+                    {{-- Tombol Export PDF (Hanya Admin) --}}
+                    @can('admin')
+                        <a href="{{ route('kerusakan-jalan.export-pdf') }}" class="btn btn-info btn-sm me-2">Export PDF</a>
+                    @endcan
+
+                    {{-- Tombol Export Excel (Hanya Admin) --}}
+                    @can('admin')
+                        <a href="{{ route('kerusakan-jalan.export-excel') }}" class="btn btn-success btn-sm">Export Excel</a>
+                    @endcan
                 </div>
             </div>
 
-            {{-- Filter Form --}}
+            {{-- Filter Form (Ini akan tetap berfungsi di sisi server, DataTables akan menambahkan pencarian dan sorting di sisi klien) --}}
             <form action="{{ route('kerusakan-jalan.index') }}" method="GET" class="mb-4">
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label for="filter_nama_jalan" class="form-label text-sm">Nama Jalan</label>
-                        {{-- Menggunakan input teks biasa untuk pencarian nama jalan --}}
                         <input type="text" class="form-control form-control-sm" id="filter_nama_jalan" name="nama_jalan"
                             value="{{ $filterNamaJalan }}" placeholder="Cari nama jalan...">
                     </div>
@@ -94,20 +98,22 @@
                         Filter</a>
                 </div>
             </form>
-            {{-- End Filter Form --}}
 
             <div class="table-responsive">
-                <table class="table table-bordered table-hover">
+                <table id="kerusakanJalanTable" class="table table-bordered table-hover text-center"> {{-- Tambahkan text-center di sini --}}
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>Nama Jalan</th>
-                            <th>Tanggal Lapor</th>
-                            <th>Pelapor</th>
-                            <th>Tingkat Kerusakan</th>
-                            <th>Prioritas</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
+                            <th class="text-center">#</th>
+                            <th class="text-center">Nama Jalan</th>
+                            <th class="text-center">Regional RT</th>
+                            <th class="text-center">Regional RW</th>
+                            <th class="text-center">Regional Dusun</th>
+                            <th class="text-center">Tanggal Lapor</th>
+                            <th class="text-center">Pelapor</th>
+                            <th class="text-center">Tingkat Kerusakan</th>
+                            <th class="text-center">Prioritas</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -115,6 +121,9 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $laporan->jalan->nama_jalan ?? 'Jalan Tidak Ditemukan' }}</td>
+                                <td>{{ $laporan->jalan->regional->nama_regional ?? 'N/A' }}</td>
+                                <td>{{ $laporan->jalan->rwRegional->nama_regional ?? 'N/A' }}</td>
+                                <td>{{ $laporan->jalan->dusunRegional->nama_regional ?? 'N/A' }}</td>
                                 <td>{{ $laporan->tanggal_lapor->format('d M Y') }}</td>
                                 <td>{{ $laporan->user->name ?? 'User Tidak Ditemukan' }}</td>
                                 <td>{{ $laporan->tingkat_kerusakan }}</td>
@@ -141,32 +150,52 @@
                                 <td>
                                     <a href="{{ route('kerusakan-jalan.show', $laporan->id) }}"
                                         class="btn btn-info btn-sm">Lihat</a>
-                                    {{-- Hanya admin yang bisa edit status perbaikan/prioritas --}}
-                                    @if (Auth::check() && Auth::user()->isAdmin())
+                                    {{-- Tombol Edit dan Hapus (role-based menggunakan @can) --}}
+                                    @can('admin', $laporan)
                                         <a href="{{ route('kerusakan-jalan.edit', $laporan->id) }}"
                                             class="btn btn-warning btn-sm">Edit</a>
-                                    @endif
-                                    <form action="{{ route('kerusakan-jalan.destroy', $laporan->id) }}" method="POST"
-                                        class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm"
-                                            onclick="return confirm('Apakah Anda yakin ingin menghapus laporan ini?')">Hapus</button>
-                                    </form>
+                                        <form action="{{ route('kerusakan-jalan.destroy', $laporan->id) }}" method="POST"
+                                            class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Apakah Anda yakin ingin menghapus laporan ini?')">Hapus</button>
+                                        </form>
+                                    @endcan
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center">Tidak ada laporan kerusakan jalan.</td>
+                                <td colspan="11" class="text-center">Tidak ada laporan kerusakan jalan.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
 
-            <div class="mt-4">
-                {{ $kerusakanJalans->links() }}
-            </div>
+            {{-- Paginasi Laravel bawaan DIHAPUS karena DataTables akan menangani paginasi di sisi klien --}}
+            {{-- {{ $kerusakanJalans->links() }} --}}
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            // Periksa apakah DataTables sudah diinisialisasi pada tabel ini
+            if ($.fn.DataTable.isDataTable('#kerusakanJalanTable')) {
+                // Jika sudah, hancurkan instance lama sebelum membuat yang baru
+                $('#kerusakanJalanTable').DataTable().destroy();
+            }
+
+            // Inisialisasi DataTables pada tabel Anda
+            $('#kerusakanJalanTable').DataTable({
+                "paging": true, // Aktifkan paginasi
+                "ordering": false, // Aktifkan sorting kolom
+                "info": true, // Tampilkan info paginasi
+                "searching": false, // Nonaktifkan kotak pencarian global
+                "lengthChange": false // Nonaktifkan "Show X entries" dropdown
+            });
+        });
+    </script>
+@endpush

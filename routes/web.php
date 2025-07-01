@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\RegionalController;
 use App\Http\Controllers\KerusakanJalanController;
 use App\Http\Controllers\ProfileController; // Dari Breeze
@@ -12,6 +13,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('regional', RegionalController::class);
     Route::resource('jalan', JalanController::class);
     Route::resource('kerusakan-jalan', KerusakanJalanController::class);
+    Route::resource('users', UserController::class);
     Route::get('/api/jalan/{jalan}', [JalanController::class, 'getJalanData'])->name('api.jalan.get-data');
     Route::get('/map-overview', [DashboardController::class, 'mapOverview'])->name('map.overview');
     Route::get('/kerusakan-jalan/export/pdf', [KerusakanJalanController::class, 'exportPdf'])->name('kerusakan-jalan.export-pdf');

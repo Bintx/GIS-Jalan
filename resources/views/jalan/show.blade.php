@@ -15,6 +15,7 @@
             background: #fff;
         }
     </style>
+    {{-- Leaflet CSS dimuat di layouts/app.blade.php dari CDN --}}
 @endpush
 
 @section('content')
@@ -51,9 +52,14 @@
                 <dt class="col-sm-3">Kondisi Awal:</dt>
                 <dd class="col-sm-9">{{ $jalan->kondisi_jalan }}</dd>
 
-                <dt class="col-sm-3">Regional:</dt>
-                <dd class="col-sm-9">{{ $jalan->regional->nama_regional ?? 'N/A' }}
-                    ({{ $jalan->regional->tipe_regional ?? 'N/A' }})</dd>
+                <dt class="col-sm-3">Regional RT:</dt>
+                <dd class="col-sm-9">{{ $jalan->regional->nama_regional ?? 'N/A' }}</dd>
+
+                <dt class="col-sm-3">Regional RW:</dt>
+                <dd class="col-sm-9">{{ $jalan->rwRegional->nama_regional ?? 'N/A' }}</dd>
+
+                <dt class="col-sm-3">Regional Dusun:</dt>
+                <dd class="col-sm-9">{{ $jalan->dusunRegional->nama_regional ?? 'N/A' }}</dd>
             </dl>
 
             <h5 class="card-title mb-4">Visualisasi Geometri</h5>
@@ -75,14 +81,13 @@
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
 
-            var jalanGeometri = {!! json_encode($jalan->geometri_json) !!}; // Ambil objek GeoJSON LineString lengkap dari PHP
+            map.invalidateSize(); // Memastikan peta dirender dengan benar
 
-            console.log("Data Geometri dari DB (Show Page):", jalanGeometri); // Debugging di konsol
+            var jalanGeometri = {!! json_encode($jalan->geometri_json) !!}; // Ambil objek GeoJSON LineString lengkap dari PHP
 
             if (jalanGeometri && jalanGeometri.type === 'LineString' && jalanGeometri.coordinates && jalanGeometri
                 .coordinates.length > 0) {
                 try {
-                    // L.geoJSON sudah bisa memproses objek GeoJSON lengkap langsung
                     var geojsonLayer = L.geoJSON(jalanGeometri, {
                         style: function(feature) {
                             return {
@@ -93,17 +98,12 @@
                     }).addTo(map);
 
                     map.fitBounds(geojsonLayer.getBounds());
-                    console.log("Peta disesuaikan dengan garis jalan (Show Page).");
                 } catch (e) {
-                    console.error("Error saat menambahkan GeoJSON layer (Show Page):", e);
-                    // Jika ada error, set view default ke Jelobo
+                    console.error("Error saat menambahkan GeoJSON layer di Detail Jalan:", e);
                     map.setView([-7.701469, 110.746014], 16);
-                    console.warn("Karena error GeoJSON, peta diatur ke Desa Jelobo (Show Page).");
                 }
             } else {
-                // Jika tidak ada geometri yang valid, set view ke Kantor Desa Jelobo
                 map.setView([-7.701469, 110.746014], 16);
-                console.log("Tidak ada geometri valid, peta diatur ke Desa Jelobo (Show Page).");
             }
         });
     </script>

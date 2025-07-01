@@ -5,16 +5,36 @@ namespace App\Http\Controllers;
 use App\Models\Regional;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class RegionalController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $regionals = Regional::latest()->paginate(10); // Ambil semua data regional, paginasi 10 per halaman
-        return view('regional.index', compact('regionals'));
+        // $filterNamaRegional = $request->query('nama_regional');
+        $filterTipeRegional = $request->query('tipe_regional');
+
+        $queryRegional = Regional::query();
+
+        // if ($filterNamaRegional) {
+        //     $queryRegional->where('nama_regional', 'like', '%' . $filterNamaRegional . '%');
+        // }
+
+        if ($filterTipeRegional) {
+            $queryRegional->where('tipe_regional', $filterTipeRegional);
+        }
+
+        // Ambil SEMUA data yang sudah difilter untuk paginasi sisi klien oleh DataTables
+        $regionals = $queryRegional->latest()->get(); // <-- PERUBAHAN DI SINI: .get() bukan .paginate()
+
+        return view('regional.index', compact(
+            'regionals',
+            // 'filterNamaRegional',
+            'filterTipeRegional'
+        ));
     }
 
     /**
@@ -32,12 +52,12 @@ class RegionalController extends Controller
     {
         $validated = $request->validate([
             'nama_regional' => 'required|string|max:255|unique:regional,nama_regional',
-            'tipe_regional' => ['required', 'string', Rule::in(['RT', 'RW', 'Desa', 'Kecamatan'])],
+            'tipe_regional' => ['required', 'string', Rule::in(['RT', 'RW', 'Dusun'])],
         ]);
 
         Regional::create($validated);
 
-        return redirect()->route('regional.index')->with('success', 'Data Regional berhasil ditambahkan!');
+        return redirect()->route('regional.index')->with('success', 'Data Regional ' . $validated['nama_regional'] . ' berhasil ditambahkan!');
     }
 
     /**
@@ -62,13 +82,13 @@ class RegionalController extends Controller
     public function update(Request $request, Regional $regional)
     {
         $validated = $request->validate([
-            'nama_regional' => 'required|string|max:255|unique:regional,nama_regional,' . $regional->id, // Unique kecuali ID ini
-            'tipe_regional' => ['required', 'string', Rule::in(['RT', 'RW', 'Desa', 'Kecamatan'])],
+            'nama_regional' => 'required|string|max:255|unique:regional,nama_regional,' . $regional->id,
+            'tipe_regional' => ['required', 'string', Rule::in(['RT', 'RW', 'Dusun'])],
         ]);
 
         $regional->update($validated);
 
-        return redirect()->route('regional.index')->with('success', 'Data Regional berhasil diperbarui!');
+        return redirect()->route('regional.index')->with('success', 'Data Regional ' . $regional->nama_regional . ' berhasil diperbarui!');
     }
 
     /**
@@ -77,7 +97,6 @@ class RegionalController extends Controller
     public function destroy(Regional $regional)
     {
         $regional->delete();
-
-        return redirect()->route('regional.index')->with('success', 'Data Regional berhasil dihapus!');
+        return redirect()->route('regional.index')->with('success', 'Data Regional ' . $regional->nama_regional . ' berhasil dihapus!');
     }
 }

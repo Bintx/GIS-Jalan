@@ -9,10 +9,10 @@
                 <button type="button" class="sidebar-mobile-toggle">
                     <iconify-icon icon="heroicons:bars-3-solid" class="icon"></iconify-icon>
                 </button>
-                <form class="navbar-search">
+                {{-- <form class="navbar-search">
                     <input type="text" name="search" placeholder="Search">
                     <iconify-icon icon="ion:search-outline" class="icon"></iconify-icon>
-                </form>
+                </form> --}}
             </div>
         </div>
         <div class="col-auto">
@@ -51,30 +51,22 @@
                         <ul class="to-top-list">
                             <li>
                                 <a class="dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3"
-                                    href="view-profile.html">
+                                    href="{{ route('profile.edit') }}">
                                     <iconify-icon icon="solar:user-linear" class="icon text-xl"></iconify-icon> My
                                     Profile</a>
                             </li>
-                            {{-- <li>
-                                <a class="dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-danger d-flex align-items-center gap-3"
-                                    href="javascript:void(0)">
-                                    <iconify-icon icon="lucide:power" class="icon text-xl"></iconify-icon> Log Out</a>
-                            </li> --}}
                             <li>
-                                <a
-                                    class="dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-danger d-flex align-items-center gap-3"
+                                <a class="dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-danger d-flex align-items-center gap-3"
                                     href="{{ route('logout') }}"
-                                    
                                     onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                    <iconify-icon icon="lucide:power"
-                                        class="icon text-xl"></iconify-icon> Log Out
-                                    </a>
+                                    <iconify-icon icon="lucide:power" class="icon text-xl"></iconify-icon> Log Out
+                                </a>
 
-                                <form id="logout-form" action="{{ route('logout') }}"
-                                    method="POST" style="display: none;">
+                                <form id="logout-form" action="{{ route('logout') }}" method="POST"
+                                    style="display: none;">
                                     @csrf
-                                    </form>
-                                </li>
+                                </form>
+                            </li>
                         </ul>
                     </div>
                 </div>
