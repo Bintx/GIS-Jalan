@@ -380,7 +380,7 @@
                     },
                     min: 0,
                     max: 10, // Sesuaikan max ini jika Anda memiliki lebih dari 10 laporan per bulan
-                    tickAmount: 10
+                    tickAmount: 5
                 },
                 tooltip: {
                     y: {
@@ -447,7 +447,7 @@
                 content += `<h5>${properties.nama_jalan}</h5>`;
                 content += `<p><strong>Panjang:</strong> ${properties.panjang_jalan} m</p>`;
                 content += `<p><strong>Kondisi Awal:</strong> ${properties.kondisi_awal}</p>`;
-                content += `<p><strong>Regional:</strong> ${properties.regional}`;
+                content += `<p><strong>Regional:</strong> RT:  ${properties.regional}`;
 
                 // Tambahkan RW dan Dusun jika ada
                 if (properties.rw_regional && properties.rw_regional !== 'N/A') {
