@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Jalan;
 use App\Models\KerusakanJalan;
-use App\Models\Regional; // Import Model Regional untuk filter
+use App\Models\Regional;
 use App\Models\User;
-use Illuminate\Http\Request; // Import Request
-use Illuminate\Support\Facades\DB; // Tambahkan baris ini
+use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session; // Import Session Facade
 
 class DashboardController extends Controller
 {
@@ -74,46 +75,47 @@ class DashboardController extends Controller
      */
     public function mapOverview(Request $request): View
     {
-        // Ambil filter dari request
         $filterRegionalId = $request->query('regional_id');
-        $filterPrioritas = $request->query('prioritas'); // tinggi, sedang, rendah, belum_diklasifikasi
-        $filterStatusPerbaikan = $request->query('status_perbaikan'); // belum_diperbaiki, dalam_perbaikan, sudah_diperbaiki
+        $filterPrioritas = $request->query('prioritas');
+        $filterStatusPerbaikan = $request->query('status_perbaikan');
 
-        // Query Jalan
-        $queryJalan = Jalan::with(['regional', 'kerusakanJalans' => function ($query) use ($filterPrioritas, $filterStatusPerbaikan) {
-            $query->latest('tanggal_lapor'); // Prioritaskan laporan terbaru
-
-            // Filter laporan berdasarkan prioritas (jika ada)
-            if ($filterPrioritas) {
-                if ($filterPrioritas === 'belum_diklasifikasi') {
-                    $query->whereNull('klasifikasi_prioritas');
-                } else {
-                    $query->where('klasifikasi_prioritas', $filterPrioritas);
-                }
-            }
-
-            // Filter laporan berdasarkan status perbaikan (jika ada)
-            if ($filterStatusPerbaikan) {
-                $query->where('status_perbaikan', str_replace('_', ' ', $filterStatusPerbaikan)); // Konversi underscore ke spasi
-            }
+        // Mulai query untuk Jalan
+        $queryJalan = Jalan::with(['regional', 'kerusakanJalans' => function ($query) {
+            $query->latest('tanggal_lapor');
         }]);
 
-        // Filter Jalan berdasarkan Regional (jika ada)
-        if ($filterRegionalId) {
-            $queryJalan->where('regional_id', $filterRegionalId);
+        if ($filterPrioritas || $filterStatusPerbaikan) {
+            $queryJalan->whereHas('kerusakanJalans', function ($query) use ($filterPrioritas, $filterStatusPerbaikan) {
+                if ($filterPrioritas) {
+                    if ($filterPrioritas === 'belum_diklasifikasi') {
+                        $query->whereNull('klasifikasi_prioritas');
+                    } else {
+                        $query->where('klasifikasi_prioritas', $filterPrioritas);
+                    }
+                }
+                if ($filterStatusPerbaikan) {
+                    $query->where('status_perbaikan', str_replace('_', ' ', $filterStatusPerbaikan));
+                }
+            });
         }
 
-        $jalans = $queryJalan->get(); // Eksekusi query
+        if ($filterRegionalId) {
+            $queryJalan->where(function ($query) use ($filterRegionalId) {
+                $query->where('regional_id', $filterRegionalId)
+                    ->orWhere('rw_regional_id', $filterRegionalId)
+                    ->orWhere('dusun_regional_id', $filterRegionalId);
+            });
+        }
+
+        $jalans = $queryJalan->get();
 
         $roadsGeoJson = [];
         foreach ($jalans as $jalan) {
-            // Hanya tampilkan jalan yang memiliki geometri yang valid
             if ($jalan->geometri_json && is_array($jalan->geometri_json) && isset($jalan->geometri_json['coordinates']) && count($jalan->geometri_json['coordinates']) > 0) {
-                $color = 'blue'; // Warna default untuk jalan tanpa laporan atau kondisi baik
+                $color = 'blue';
                 $priority = 'tidak ada';
-                $damageLevel = $jalan->kondisi_jalan; // Kondisi awal dari master jalan
+                $damageLevel = $jalan->kondisi_jalan;
 
-                // Logic penentuan warna dan prioritas dari laporan kerusakan
                 if ($jalan->kerusakanJalans->isNotEmpty()) {
                     $latestDamage = $jalan->kerusakanJalans->first();
                     $priority = $latestDamage->klasifikasi_prioritas ?? 'belum diklasifikasi';
@@ -130,26 +132,25 @@ class DashboardController extends Controller
                             $color = 'green';
                             break;
                         default:
-                            $color = 'gray'; // Jika belum diklasifikasi
+                            $color = 'gray';
                             break;
                     }
                 } else {
-                    // Jika tidak ada laporan kerusakan, gunakan kondisi awal jalan untuk menentukan warna dasar
                     switch ($jalan->kondisi_jalan) {
                         case 'rusak berat':
-                            $color = 'red'; // Merah untuk rusak berat
+                            $color = 'red';
                             break;
                         case 'rusak sedang':
-                            $color = 'orange'; // Oranye untuk rusak sedang
+                            $color = 'orange';
                             break;
                         case 'rusak ringan':
-                            $color = 'yellow'; // Kuning untuk rusak ringan
+                            $color = 'yellow';
                             break;
                         case 'baik':
-                            $color = 'green'; // Hijau untuk baik
+                            $color = 'green';
                             break;
                         default:
-                            $color = 'blue'; // Default jika kondisi tidak terdefinisi
+                            $color = 'blue';
                             break;
                     }
                 }
@@ -185,10 +186,14 @@ class DashboardController extends Controller
             }
         }
 
-        // Ambil semua regional untuk filter dropdown
+        // Jika tidak ada jalan yang ditemukan setelah filter, kirim pesan warning
+        if (empty($roadsGeoJson) && ($filterRegionalId || $filterPrioritas || $filterStatusPerbaikan)) {
+            Session::flash('warning', 'Tidak ada data jalan yang ditemukan sesuai dengan filter yang dipilih.');
+        }
+
+
         $regionals = Regional::all();
 
-        // Teruskan data ke view, termasuk filter yang aktif saat ini
         return view('dashboard.map', compact('roadsGeoJson', 'regionals', 'filterRegionalId', 'filterPrioritas', 'filterStatusPerbaikan'));
     }
 }
