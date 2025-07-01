@@ -5,6 +5,25 @@
 
 @push('styles')
     <style>
+        /* Tambahan: Fixed Header */
+        .navbar-header {
+            position: fixed;
+            top: 0;
+            left: 250px;
+            /* Sesuaikan jika sidebar bukan 250px */
+            width: calc(100% - 250px);
+            z-index: 1050;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 1rem 1.5rem;
+        }
+
+        body {
+            padding-top: 80px;
+            /* Agar konten tidak ketiban header */
+            overflow-y: auto;
+        }
+
         #mapid {
             height: 700px;
             width: 100%;
@@ -44,23 +63,18 @@
             background-color: #dc3545;
         }
 
-        /* Merah */
         .info-box .priority-medium {
             background-color: #ffc107;
             color: #212529;
         }
 
-        /* Kuning */
         .info-box .priority-low {
             background-color: #28a745;
         }
 
-        /* Hijau */
         .info-box .priority-unclassified {
             background-color: #6c757d;
         }
-
-        /* Abu-abu */
 
         .info-box .status-badge {
             font-weight: bold;
@@ -113,18 +127,6 @@
         <div class="card-body p-24">
             {{-- Filter Form --}}
             <form id="mapFilterForm" class="mb-4 d-flex flex-wrap align-items-end gap-3">
-                <div class="flex-grow-1">
-                    <label for="filter_regional" class="form-label text-sm">Regional</label>
-                    <select class="form-select form-select-sm" id="filter_regional" name="regional_id">
-                        <option value="">Semua Regional</option>
-                        @foreach ($regionals as $regional)
-                            <option value="{{ $regional->id }}"
-                                {{ (string) $filterRegionalId === (string) $regional->id ? 'selected' : '' }}>
-                                {{ $regional->nama_regional }} ({{ $regional->tipe_regional }})
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
 
                 <div class="flex-grow-1">
                     <label for="filter_prioritas" class="form-label text-sm">Prioritas</label>
@@ -165,8 +167,7 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            var map = L.map('mapid').setView([-7.701469, 110.746014],
-            14); // Pusat di Kantor Desa Jelobo, zoom out sedikit untuk overview
+            var map = L.map('mapid'); // Inisialisasi peta tanpa setView awal
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -180,7 +181,6 @@
 
             // Fungsi untuk mendapatkan warna berdasarkan prioritas atau kondisi awal
             function getColorForPath(properties) {
-                // Prioritaskan prioritas klasifikasi jika ada
                 if (properties.prioritas_klasifikasi && properties.prioritas_klasifikasi !== 'tidak ada' &&
                     properties.prioritas_klasifikasi !== 'belum diklasifikasi') {
                     switch (properties.prioritas_klasifikasi) {
@@ -191,10 +191,9 @@
                         case 'rendah':
                             return 'green';
                         default:
-                            return 'gray'; // Fallback
+                            return 'gray';
                     }
                 } else if (properties.kondisi_awal) {
-                    // Jika tidak ada prioritas, gunakan kondisi awal jalan
                     switch (properties.kondisi_awal) {
                         case 'rusak berat':
                             return 'red';
@@ -205,10 +204,10 @@
                         case 'baik':
                             return 'green';
                         default:
-                            return 'blue'; // Default
+                            return 'blue';
                     }
                 }
-                return 'blue'; // Default jika tidak ada data sama sekali
+                return 'blue';
             }
 
             // Fungsi untuk membuat pop-up content
@@ -231,8 +230,7 @@
 
                 if (properties.laporan_kerusakan && properties.laporan_kerusakan.length > 0) {
                     content += `<h6>Laporan Kerusakan Terbaru:</h6>`;
-                    // Ambil hanya laporan terbaru (misalnya 1 atau 2 laporan terakhir)
-                    const latestReports = properties.laporan_kerusakan.slice(0, 1); // Hanya 1 laporan terbaru
+                    const latestReports = properties.laporan_kerusakan.slice(0, 1);
                     latestReports.forEach(laporan => {
                         let statusText = laporan.status_perbaikan;
                         let statusClass = '';
@@ -240,7 +238,7 @@
                         else if (statusText === 'dalam perbaikan') statusClass = 'status-dalam';
                         else if (statusText === 'sudah diperbaiki') statusClass = 'status-sudah';
 
-                        content += `<div class="mb-2 nested-info-box">`; // Nested info-box for reports
+                        content += `<div class="mb-2 nested-info-box">`;
                         content += `<p><strong>Tanggal:</strong> ${laporan.tanggal_lapor}</p>`;
                         content += `<p><strong>Tingkat:</strong> ${laporan.tingkat_kerusakan}</p>`;
                         content +=
@@ -267,12 +265,10 @@
                 return content;
             }
 
-            // Tambahkan GeoJSON Layer ke Peta
             L.geoJSON(roadsData, {
                 style: function(feature) {
                     return {
-                        color: getColorForPath(feature
-                        .properties), // Panggil getColorForPath dengan properties
+                        color: getColorForPath(feature.properties),
                         weight: 5,
                         opacity: 0.7
                     };
@@ -281,21 +277,25 @@
                     if (feature.properties && feature.geometry && feature.geometry.coordinates &&
                         feature.geometry.coordinates.length > 0) {
                         layer.bindPopup(createPopupContent(feature.properties), {
-                            maxWidth: 300 // Lebar maksimum pop-up
+                            maxWidth: 300
                         });
                     }
                 }
             }).addTo(map);
 
-            // Opsional: Atur ulang tampilan peta agar semua fitur terlihat jika diinginkan
-            // Pastikan ada data jalan sebelum mencoba fitBounds
-            if (roadsData.length > 0) {
+            // Jika tidak ada data jalan yang ditampilkan setelah filter, set view ke Desa Jelobo
+            if (roadsData.length === 0) {
+                map.setView([-7.634317316995929, 110.74809228068428],
+                    16); // Pusat di Kantor Desa Jelobo, zoom out sedikit
+            } else {
+                // Jika ada data, sesuaikan tampilan peta agar semua fitur terlihat
                 try {
                     var allFeatures = L.geoJSON(roadsData);
                     map.fitBounds(allFeatures.getBounds());
                 } catch (e) {
                     console.error("Error fitting map bounds to all features:", e);
-                    map.setView([-7.701469, 110.746014], 14); // Fallback ke Jelobo jika ada error
+                    map.setView([-7.634317316995929, 110.74809228068428],
+                        16); // Fallback ke Jelobo jika ada error
                 }
             }
         });
