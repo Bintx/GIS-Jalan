@@ -197,14 +197,19 @@
                     switch (properties.kondisi_awal) {
                         case 'rusak berat':
                             return 'red';
+                            break;
                         case 'rusak sedang':
                             return 'orange';
+                            break;
                         case 'rusak ringan':
                             return 'yellow';
+                            break;
                         case 'baik':
                             return 'green';
+                            break;
                         default:
                             return 'blue';
+                            break;
                     }
                 }
                 return 'blue';
@@ -216,51 +221,74 @@
                 content += `<h5>${properties.nama_jalan}</h5>`;
                 content += `<p><strong>Panjang:</strong> ${properties.panjang_jalan} m</p>`;
                 content += `<p><strong>Kondisi Awal:</strong> ${properties.kondisi_awal}</p>`;
-                content += `<p><strong>Regional:</strong> ${properties.regional} (${properties.regional_tipe})</p>`;
+                content += `<p><strong>Regional:</strong> ${properties.regional}`;
 
-                let priorityText = properties.prioritas_klasifikasi;
-                let priorityClass = '';
-                if (priorityText === 'tinggi') priorityClass = 'priority-high';
-                else if (priorityText === 'sedang') priorityClass = 'priority-medium';
-                else if (priorityText === 'rendah') priorityClass = 'priority-low';
-                else if (priorityText === 'belum diklasifikasi') priorityClass = 'priority-unclassified';
+                // Tambahkan RW dan Dusun jika ada
+                if (properties.rw_regional && properties.rw_regional !== 'N/A') {
+                    content += `, RW: ${properties.rw_regional}`;
+                }
+                if (properties.dusun_regional && properties.dusun_regional !== 'N/A') {
+                    content += `, Dusun: ${properties.dusun_regional}`;
+                }
+                content += `</p>`;
 
-                content +=
-                    `<p><strong>Prioritas:</strong> <span class="priority-badge ${priorityClass}">${priorityText.toUpperCase()}</span></p>`;
 
                 if (properties.laporan_kerusakan && properties.laporan_kerusakan.length > 0) {
                     content += `<h6>Laporan Kerusakan Terbaru:</h6>`;
-                    const latestReports = properties.laporan_kerusakan.slice(0, 1);
-                    latestReports.forEach(laporan => {
-                        let statusText = laporan.status_perbaikan;
-                        let statusClass = '';
-                        if (statusText === 'belum diperbaiki') statusClass = 'status-belum';
-                        else if (statusText === 'dalam perbaikan') statusClass = 'status-dalam';
-                        else if (statusText === 'sudah diperbaiki') statusClass = 'status-sudah';
+                    // Tampilkan hanya laporan terbaru
+                    const latestReport = properties.laporan_kerusakan[
+                    0]; // Karena sudah diurutkan descending di controller
 
-                        content += `<div class="mb-2 nested-info-box">`;
-                        content += `<p><strong>Tanggal:</strong> ${laporan.tanggal_lapor}</p>`;
-                        content += `<p><strong>Tingkat:</strong> ${laporan.tingkat_kerusakan}</p>`;
+                    let statusText = latestReport.status_perbaikan;
+                    let statusClass = '';
+                    if (statusText === 'belum diperbaiki') statusClass = 'status-belum';
+                    else if (statusText === 'dalam perbaikan') statusClass = 'status-dalam';
+                    else if (statusText === 'sudah diperbaiki') statusClass = 'status-sudah';
+
+                    // Ambil prioritas jalan dari properti jalan, bukan dari laporan kerusakan
+                    let priorityTextJalan = properties.prioritas_klasifikasi;
+                    let priorityClassJalan = '';
+                    if (priorityTextJalan === 'tinggi') priorityClassJalan = 'priority-high';
+                    else if (priorityTextJalan === 'sedang') priorityClassJalan = 'priority-medium';
+                    else if (priorityTextJalan === 'rendah') priorityClassJalan = 'priority-low';
+                    else if (priorityTextJalan === 'belum diklasifikasi') priorityClassJalan =
+                        'priority-unclassified';
+
+
+                    content += `<div class="mb-2 nested-info-box">`;
+                    content += `<p><strong>Tanggal Lapor:</strong> ${latestReport.tanggal_lapor}</p>`;
+                    content += `<p><strong>Tingkat Kerusakan:</strong> ${latestReport.tingkat_kerusakan}</p>`;
+                    if (latestReport.tingkat_lalu_lintas) {
                         content +=
-                            `<p><strong>Prioritas Laporan:</strong> ${laporan.prioritas ? `<span class="priority-badge ${priorityClass}">${laporan.prioritas.toUpperCase()}</span>` : 'Belum Diklasifikasi'}</p>`;
-                        content +=
-                            `<p><strong>Status:</strong> <span class="status-badge ${statusClass}">${statusText.toUpperCase()}</span></p>`;
-                        if (laporan.deskripsi) content +=
-                            `<p><strong>Deskripsi:</strong> ${laporan.deskripsi}</p>`;
-                        if (laporan.foto_url) {
-                            content +=
-                                `<p><strong>Foto:</strong></p><img src="${laporan.foto_url}" class="foto-kerusakan" alt="Foto Kerusakan">`;
-                        }
-                        content += `</div>`;
-                    });
+                            `<p><strong>Tingkat Lalu Lintas:</strong> ${latestReport.tingkat_lalu_lintas}</p>`;
+                    }
+                    // Prioritas jalan sekarang diletakkan di sini
+                    content +=
+                        `<p><strong>Prioritas Jalan:</strong> <span class="priority-badge ${priorityClassJalan}">${priorityTextJalan.toUpperCase()}</span></p>`;
+                    content +=
+                        `<p><strong>Status Perbaikan:</strong> <span class="status-badge ${statusClass}">${statusText.toUpperCase()}</span></p>`;
+                    content += `</div>`;
+
                     if (properties.laporan_kerusakan.length > 1) {
                         content += `<small>(${properties.laporan_kerusakan.length - 1} laporan lain)</small>`;
                     }
+                    // Link ke halaman show laporan kerusakan untuk laporan terbaru
                     content +=
-                        `<p><a href="{{ route('kerusakan-jalan.index') }}?jalan_id=${properties.id}" target="_blank">Lihat Semua Laporan Jalan Ini</a></p>`;
+                        `<p class="mt-3"><a href="{{ route('kerusakan-jalan.show', '') }}/${latestReport.id}">Lihat Detail Laporan Terbaru</a></p>`; // target="_blank" dihapus
 
                 } else {
                     content += `<p>Tidak ada laporan kerusakan jalan.</p>`;
+                    // Jika tidak ada laporan, tetap tampilkan prioritas jalan
+                    let priorityTextJalan = properties.prioritas_klasifikasi;
+                    let priorityClassJalan = '';
+                    if (priorityTextJalan === 'tinggi') priorityClassJalan = 'priority-high';
+                    else if (priorityTextJalan === 'sedang') priorityClassJalan = 'priority-medium';
+                    else if (priorityTextJalan === 'rendah') priorityClassJalan = 'priority-low';
+                    else if (priorityTextJalan === 'belum diklasifikasi') priorityClassJalan =
+                        'priority-unclassified';
+
+                    content +=
+                        `<p><strong>Prioritas Jalan:</strong> <span class="priority-badge ${priorityClassJalan}">${priorityTextJalan.toUpperCase()}</span></p>`;
                 }
                 return content;
             }

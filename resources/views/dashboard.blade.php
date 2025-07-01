@@ -3,24 +3,87 @@
 @section('title', 'Dashboard - Sistem Informasi Perbaikan Jalan')
 
 @section('content')
-    {{-- Tambahkan gaya CSS di sini jika Anda ingin header tetap terlihat saat menggulir.
-         Anda perlu mengidentifikasi elemen header di layouts/app.blade.php
-         dan menerapkan gaya seperti 'position: fixed; top: 0; width: 100%; z-index: 1000;'
-         Contoh:
-         <style>
-             .main-header { /* Ganti .main-header dengan kelas atau ID header Anda */
-                 position: fixed;
-                 top: 0;
-                 width: 100%;
-                 z-index: 1000; /* Pastikan z-index cukup tinggi */
-                 background-color: white; /* Tambahkan warna latar belakang agar tidak transparan */
-                 box-shadow: 0 2px 4px rgba(0,0,0,.1); /* Opsional: tambahkan bayangan */
-             }
-             body {
-                 padding-top: 70px; /* Sesuaikan dengan tinggi header Anda untuk mencegah konten tertutup */
-             }
-         </style>
-    --}}
+    @push('styles')
+        <style>
+            #miniMap {
+                height: 300px;
+                /* Atau sesuaikan dengan tinggi yang Anda inginkan */
+                width: 100%;
+                border-radius: 8px;
+                z-index: 1;
+            }
+
+            .leaflet-container {
+                background: #fff;
+            }
+
+            /* Styling untuk info-box di pop-up peta */
+            .info-box {
+                background: white;
+                padding: 10px;
+                border-radius: 5px;
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            .info-box h5 {
+                margin-top: 0;
+                font-size: 16px;
+                color: #333;
+            }
+
+            .info-box .priority-badge {
+                font-weight: bold;
+                padding: 4px 8px;
+                border-radius: 3px;
+                color: white;
+                display: inline-block;
+                margin-bottom: 5px;
+                text-transform: uppercase;
+            }
+
+            .info-box .priority-high {
+                background-color: #dc3545;
+            }
+
+            .info-box .priority-medium {
+                background-color: #ffc107;
+                color: #212529;
+            }
+
+            .info-box .priority-low {
+                background-color: #28a745;
+            }
+
+            .info-box .priority-unclassified {
+                background-color: #6c757d;
+            }
+
+            .info-box .status-badge {
+                font-weight: bold;
+                padding: 4px 8px;
+                border-radius: 3px;
+                color: white;
+                display: inline-block;
+                margin-bottom: 5px;
+                text-transform: uppercase;
+            }
+
+            .info-box .status-belum {
+                background-color: #dc3545;
+            }
+
+            .info-box .status-dalam {
+                background-color: #ffc107;
+                color: #212529;
+            }
+
+            .info-box .status-sudah {
+                background-color: #28a745;
+            }
+        </style>
+    @endpush
 
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
         <h6 class="fw-semibold mb-0">Dashboard Overview</h6>
@@ -211,6 +274,7 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('assets/js/lib/leaflet.js') }}"></script>
     <script>
         $(document).ready(function() {
             // Data untuk Chart Distribusi Prioritas (Donut Chart)
@@ -315,7 +379,7 @@
                         text: ''
                     },
                     min: 0,
-                    max: 10,
+                    max: 10, // Sesuaikan max ini jika Anda memiliki lebih dari 10 laporan per bulan
                     tickAmount: 10
                 },
                 tooltip: {
@@ -341,10 +405,10 @@
 
             miniMap.invalidateSize(); // Penting untuk rendering peta di tab/modal
 
-            var roadsGeoJsonForMiniMap = {!! json_encode($roadsGeoJsonForMiniMap) !!};
+            var roadsDataMiniMap = {!! json_encode($roadsGeoJsonForMiniMap) !!};
 
-            // Fungsi untuk mendapatkan warna berdasarkan prioritas atau kondisi awal (sama seperti di mapOverview)
-            function getColorForMiniMapPath(properties) {
+            // Fungsi untuk mendapatkan warna berdasarkan prioritas atau kondisi awal (sama seperti map.blade.php)
+            function getColorForPath(properties) { // Nama fungsi disamakan: getColorForPath
                 if (properties.prioritas_klasifikasi && properties.prioritas_klasifikasi !== 'tidak ada' &&
                     properties.prioritas_klasifikasi !== 'belum diklasifikasi') {
                     switch (properties.prioritas_klasifikasi) {
@@ -365,87 +429,116 @@
                             return 'orange';
                         case 'rusak ringan':
                             return 'yellow';
+                            break; // break ini tidak diperlukan setelah return
                         case 'baik':
                             return 'green';
+                            break; // break ini tidak diperlukan setelah return
                         default:
                             return 'blue';
+                            break; // break ini tidak diperlukan setelah return
                     }
                 }
                 return 'blue';
             }
 
-            // Fungsi untuk membuat pop-up content (sama seperti di mapOverview)
-            function createMiniMapPopupContent(properties) {
+            // Fungsi untuk membuat pop-up content (sama persis seperti map.blade.php)
+            function createPopupContent(properties) { // Nama fungsi disamakan: createPopupContent
                 let content = `<div class="info-box">`;
                 content += `<h5>${properties.nama_jalan}</h5>`;
                 content += `<p><strong>Panjang:</strong> ${properties.panjang_jalan} m</p>`;
                 content += `<p><strong>Kondisi Awal:</strong> ${properties.kondisi_awal}</p>`;
-                content += `<p><strong>Regional:</strong> ${properties.regional} (${properties.regional_tipe})</p>`;
+                content += `<p><strong>Regional:</strong> ${properties.regional}`;
 
-                let priorityText = properties.prioritas_klasifikasi;
-                let priorityClass = '';
-                if (priorityText === 'tinggi') priorityClass = 'priority-high';
-                else if (priorityText === 'sedang') priorityClass = 'priority-medium';
-                else if (priorityText === 'rendah') priorityClass = 'priority-low';
-                else if (priorityText === 'belum diklasifikasi') priorityClass = 'priority-unclassified';
+                // Tambahkan RW dan Dusun jika ada
+                if (properties.rw_regional && properties.rw_regional !== 'N/A') {
+                    content += `, RW: ${properties.rw_regional}`;
+                }
+                if (properties.dusun_regional && properties.dusun_regional !== 'N/A') {
+                    content += `, Dusun: ${properties.dusun_regional}`;
+                }
+                content += `</p>`;
 
-                content +=
-                    `<p><strong>Prioritas:</strong> <span class="priority-badge ${priorityClass}">${priorityText.toUpperCase()}</span></p>`;
 
                 if (properties.laporan_kerusakan && properties.laporan_kerusakan.length > 0) {
                     content += `<h6>Laporan Kerusakan Terbaru:</h6>`;
-                    const latestReports = properties.laporan_kerusakan.slice(0, 1);
-                    latestReports.forEach(laporan => {
-                        let statusText = laporan.status_perbaikan;
-                        let statusClass = '';
-                        if (statusText === 'belum diperbaiki') statusClass = 'status-belum';
-                        else if (statusText === 'dalam perbaikan') statusClass = 'status-dalam';
-                        else if (statusText === 'sudah diperbaiki') statusClass = 'status-sudah';
+                    // Tampilkan hanya laporan terbaru
+                    const latestReport = properties.laporan_kerusakan[
+                        0]; // Karena sudah diurutkan descending di controller
 
-                        content += `<div class="mb-2 nested-info-box">`;
-                        content += `<p><strong>Tanggal:</strong> ${laporan.tanggal_lapor}</p>`;
-                        content += `<p><strong>Tingkat:</strong> ${laporan.tingkat_kerusakan}</p>`;
+                    let statusText = latestReport.status_perbaikan;
+                    let statusClass = '';
+                    if (statusText === 'belum diperbaiki') statusClass = 'status-belum';
+                    else if (statusText === 'dalam perbaikan') statusClass = 'status-dalam';
+                    else if (statusText === 'sudah diperbaiki') statusClass = 'status-sudah';
+
+                    // Ambil prioritas jalan dari properti jalan, bukan dari laporan kerusakan
+                    let priorityTextJalan = properties.prioritas_klasifikasi;
+                    let priorityClassJalan = '';
+                    if (priorityTextJalan === 'tinggi') priorityClassJalan = 'priority-high';
+                    else if (priorityTextJalan === 'sedang') priorityClassJalan = 'priority-medium';
+                    else if (priorityTextJalan === 'rendah') priorityClassJalan = 'priority-low';
+                    else if (priorityTextJalan === 'belum diklasifikasi') priorityClassJalan =
+                        'priority-unclassified';
+
+
+                    content += `<div class="mb-2 nested-info-box">`;
+                    content += `<p><strong>Tanggal Lapor:</strong> ${latestReport.tanggal_lapor}</p>`;
+                    content += `<p><strong>Tingkat Kerusakan:</strong> ${latestReport.tingkat_kerusakan}</p>`;
+                    if (latestReport.tingkat_lalu_lintas) {
                         content +=
-                            `<p><strong>Prioritas Laporan:</strong> ${laporan.prioritas ? `<span class="priority-badge ${priorityClass}">${laporan.prioritas.toUpperCase()}</span>` : 'Belum Diklasifikasi'}</p>`;
-                        content +=
-                            `<p><strong>Status:</strong> <span class="status-badge ${statusClass}">${statusText.toUpperCase()}</span></p>`;
-                        if (laporan.deskripsi) content +=
-                            `<p><strong>Deskripsi:</strong> ${laporan.deskripsi}</p>`;
-                        // Foto tidak ditampilkan di pop-up mini map
-                        content += `</div>`;
-                    });
+                            `<p><strong>Tingkat Lalu Lintas:</strong> ${latestReport.tingkat_lalu_lintas}</p>`;
+                    }
+                    // Prioritas jalan sekarang diletakkan di sini
+                    content +=
+                        `<p><strong>Prioritas Jalan:</strong> <span class="priority-badge ${priorityClassJalan}">${priorityTextJalan.toUpperCase()}</span></p>`;
+                    content +=
+                        `<p><strong>Status Perbaikan:</strong> <span class="status-badge ${statusClass}">${statusText.toUpperCase()}</span></p>`;
+                    content += `</div>`;
+
                     if (properties.laporan_kerusakan.length > 1) {
                         content += `<small>(${properties.laporan_kerusakan.length - 1} laporan lain)</small>`;
                     }
+                    // Link ke halaman show laporan kerusakan untuk laporan terbaru
                     content +=
-                        `<p><a href="{{ route('kerusakan-jalan.index') }}?jalan_id=${properties.id}" target="_blank">Lihat Semua Laporan Jalan Ini</a></p>`;
+                        `<p class="mt-3"><a href="{{ route('kerusakan-jalan.show', '') }}/${latestReport.id}">Lihat Detail Laporan Terbaru</a></p>`;
 
                 } else {
                     content += `<p>Tidak ada laporan kerusakan jalan.</p>`;
+                    // Jika tidak ada laporan, tetap tampilkan prioritas jalan
+                    let priorityTextJalan = properties.prioritas_klasifikasi;
+                    let priorityClassJalan = '';
+                    if (priorityTextJalan === 'tinggi') priorityClassJalan = 'priority-high';
+                    else if (priorityTextJalan === 'sedang') priorityClassJalan = 'priority-medium';
+                    else if (priorityTextJalan === 'rendah') priorityClassJalan = 'priority-low';
+                    else if (priorityTextJalan === 'belum diklasifikasi') priorityClassJalan =
+                        'priority-unclassified';
+
+                    content +=
+                        `<p><strong>Prioritas Jalan:</strong> <span class="priority-badge ${priorityClassJalan}">${priorityTextJalan.toUpperCase()}</span></p>`;
                 }
-                return `<div class="info-box">${content}</div>`;
+                return content;
             }
 
 
-            if (roadsGeoJsonForMiniMap && roadsGeoJsonForMiniMap.length > 0) {
-                L.geoJSON(roadsGeoJsonForMiniMap, {
-                    style: function(feature) {
-                        return {
-                            color: getColorForMiniMapPath(feature.properties),
-                            weight: 3,
-                            opacity: 0.7
-                        };
-                    },
-                    onEachFeature: function(feature, layer) {
-                        if (feature.properties && feature.geometry && feature.geometry.coordinates &&
-                            feature.geometry.coordinates.length > 0) {
-                            layer.bindPopup(createMiniMapPopupContent(feature.properties), {
-                                maxWidth: 300
-                            });
-                        }
+            L.geoJSON(roadsDataMiniMap, {
+                style: function(feature) {
+                    return {
+                        color: getColorForPath(feature
+                            .properties), // <-- Pastikan ini memanggil getColorForPath
+                        weight: 3, // Berat garis lebih kecil untuk mini map
+                        opacity: 0.7
+                    };
+                },
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties && feature.geometry && feature.geometry.coordinates &&
+                        feature.geometry.coordinates.length > 0) {
+                        layer.bindPopup(createPopupContent(feature
+                            .properties), { // <-- Pastikan ini memanggil createPopupContent
+                            maxWidth: 300 // Max width sama
+                        });
                     }
-                }).addTo(miniMap);
-            }
+                }
+            }).addTo(miniMap);
         });
     </script>
 @endpush
