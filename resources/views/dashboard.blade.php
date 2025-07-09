@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard - Sistem Informasi Perbaikan Jalan')
+@section('title', 'Dashboard - Sistem Informasi Jalan Rusak')
 
 @section('content')
     @push('styles')
@@ -240,26 +240,28 @@
 
 
         {{-- Chart Distribusi Prioritas (Donut Chart) --}}
-        <div class="col-xxl-6 col-xl-12">
+        {{-- <div class="col-xxl-6 col-xl-12">
             <div class="card h-100 border">
                 <div class="card-body p-24">
                     <h6 class="fw-semibold mb-3">Distribusi Laporan Berdasarkan Prioritas</h6>
                     <div id="priorityDistributionChart" style="min-height: 250px;"></div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         {{-- Line Chart Laporan Per Bulan --}}
-        <div class="col-xxl-6 col-xl-12"> {{-- Mengambil sisa ruang --}}
+    </div>
+    <div class="row mt-5"> {{-- Tambahkan row baru dan margin top --}}
+        <div class="col-12"> {{-- Jadikan full width --}}
             <div class="card h-100 border">
                 <div class="card-body p-24">
                     <h6 class="fw-semibold mb-3">Jumlah Laporan Per Bulan</h6>
-                    <div id="reportsPerMonthChart" style="min-height: 250px;"></div> {{-- ID untuk chart --}}
+                    {{-- Hapus style="min-height: 250px;" karena tinggi akan diatur oleh JS --}}
+                    <div id="reportsPerMonthChart"></div>
                 </div>
             </div>
         </div>
     </div>
-
     {{-- Peta Overview Jalan - Disesuaikan untuk lebar penuh dan tinggi lebih besar --}}
     <div class="row mt-5">
         <div class="col-12">
@@ -345,7 +347,7 @@
                     data: reportsPerMonth
                 }],
                 chart: {
-                    height: 250,
+                    height: 350,
                     type: 'line',
                     zoom: {
                         enabled: false
