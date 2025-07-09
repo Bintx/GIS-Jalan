@@ -105,6 +105,28 @@
             margin-top: 10px;
             border-radius: 5px;
         }
+
+        /* Gaya untuk legenda */
+        .map-legend {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+
+        .map-legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .map-legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
     </style>
 @endpush
 
@@ -160,6 +182,23 @@
             </form>
 
             <div id="mapid"></div>
+
+            {{-- Legenda Warna Prioritas --}}
+            <div class="map-legend">
+                <h6>Keterangan Prioritas Jalan:</h6>
+                <div class="map-legend-item">
+                    <div class="map-legend-color" style="background-color: red;"></div>
+                    <span>Prioritas Tinggi</span>
+                </div>
+                <div class="map-legend-item">
+                    <div class="map-legend-color" style="background-color: orange;"></div>
+                    <span>Prioritas Sedang</span>
+                </div>
+                <div class="map-legend-item">
+                    <div class="map-legend-color" style="background-color: green;"></div>
+                    <span>Prioritas Rendah</span>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -237,7 +276,7 @@
                     content += `<h6>Laporan Kerusakan Terbaru:</h6>`;
                     // Tampilkan hanya laporan terbaru
                     const latestReport = properties.laporan_kerusakan[
-                    0]; // Karena sudah diurutkan descending di controller
+                        0]; // Karena sudah diurutkan descending di controller
 
                     let statusText = latestReport.status_perbaikan;
                     let statusClass = '';

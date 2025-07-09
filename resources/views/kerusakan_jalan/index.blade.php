@@ -30,14 +30,14 @@
 
 
                     {{-- Tombol Export PDF (Hanya Admin) --}}
-                    @can('admin')
-                        <a href="{{ route('kerusakan-jalan.export-pdf') }}" class="btn btn-info btn-sm me-2">Export PDF</a>
-                    @endcan
+
+                    <a href="{{ route('kerusakan-jalan.export-pdf') }}" class="btn btn-info btn-sm me-2">Export PDF</a>
+
 
                     {{-- Tombol Export Excel (Hanya Admin) --}}
-                    @can('admin')
-                        <a href="{{ route('kerusakan-jalan.export-excel') }}" class="btn btn-success btn-sm">Export Excel</a>
-                    @endcan
+
+                    <a href="{{ route('kerusakan-jalan.export-excel') }}" class="btn btn-success btn-sm">Export Excel</a>
+
                 </div>
             </div>
 
