@@ -82,6 +82,27 @@
             .info-box .status-sudah {
                 background-color: #28a745;
             }
+
+            /* Gaya untuk legenda peta mini */
+            .mini-map-legend {
+                background: white;
+                padding: 10px;
+                border-radius: 5px;
+                margin-top: 20px;
+            }
+
+            .mini-map-legend-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 5px;
+            }
+
+            .mini-map-legend-color {
+                width: 20px;
+                height: 20px;
+                border-radius: 3px;
+                margin-right: 10px;
+            }
         </style>
     @endpush
 
@@ -238,18 +259,32 @@
             </div>
         </div>
 
-
-        {{-- Chart Distribusi Prioritas (Donut Chart) --}}
-        {{-- <div class="col-xxl-6 col-xl-12">
+        {{-- Data Master Regional Card (BARU) --}}
+        <div class="col">
             <div class="card h-100 border">
                 <div class="card-body p-24">
-                    <h6 class="fw-semibold mb-3">Distribusi Laporan Berdasarkan Prioritas</h6>
-                    <div id="priorityDistributionChart" style="min-height: 250px;"></div>
+                    <h6 class="fw-semibold mb-3">Data Master Regional</h6>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Total Regional
+                            <span class="badge bg-primary rounded-pill">{{ $totalRegional }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Total RT
+                            <span class="badge bg-secondary rounded-pill">{{ $totalRt }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Total RW
+                            <span class="badge bg-secondary rounded-pill">{{ $totalRw }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Total Dusun
+                            <span class="badge bg-secondary rounded-pill">{{ $totalDusun }}</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
-        </div> --}}
-
-        {{-- Line Chart Laporan Per Bulan --}}
+        </div>
     </div>
     <div class="row mt-5"> {{-- Tambahkan row baru dan margin top --}}
         <div class="col-12"> {{-- Jadikan full width --}}
@@ -269,6 +304,22 @@
                 <div class="card-body p-24">
                     <h6 class="fw-semibold mb-3">Peta Overview Jalan</h6>
                     <div id="miniMap" style="height: 600px; width: 100%; border-radius: 8px;"></div>
+                    {{-- Legenda Warna Prioritas untuk Peta Mini --}}
+                    <div class="mini-map-legend">
+                        <h6>Keterangan Prioritas Jalan :</h6>
+                        <div class="mini-map-legend-item">
+                            <div class="mini-map-legend-color" style="background-color: red;"></div>
+                            <span>Prioritas Tinggi</span>
+                        </div>
+                        <div class="mini-map-legend-item">
+                            <div class="mini-map-legend-color" style="background-color: orange;"></div>
+                            <span>Prioritas Sedang</span>
+                        </div>
+                        <div class="mini-map-legend-item">
+                            <div class="mini-map-legend-color" style="background-color: green;"></div>
+                            <span>Prioritas Rendah</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -449,7 +500,7 @@
                 content += `<h5>${properties.nama_jalan}</h5>`;
                 content += `<p><strong>Panjang:</strong> ${properties.panjang_jalan} m</p>`;
                 content += `<p><strong>Kondisi Awal:</strong> ${properties.kondisi_awal}</p>`;
-                content += `<p><strong>Regional:</strong> RT:  ${properties.regional}`;
+                content += `<p><strong>Regional:</strong> RT:  ${properties.regional}`;
 
                 // Tambahkan RW dan Dusun jika ada
                 if (properties.rw_regional && properties.rw_regional !== 'N/A') {
@@ -539,8 +590,25 @@
                             maxWidth: 300 // Max width sama
                         });
                     }
+                    // Add a click event listener to the layer to open the popup
+                    layer.on('click', function() {
+                        layer.openPopup();
+                    });
                 }
             }).addTo(miniMap);
+
+            // Fit map bounds to all features if they exist, otherwise set default view
+            if (roadsDataMiniMap.length > 0) {
+                try {
+                    var allFeatures = L.geoJSON(roadsDataMiniMap);
+                    miniMap.fitBounds(allFeatures.getBounds());
+                } catch (e) {
+                    console.error("Error fitting mini map bounds to all features:", e);
+                    miniMap.setView([-7.634317316995929, 110.74809228068428], 16); // Fallback to Jelobo if error
+                }
+            } else {
+                miniMap.setView([-7.634317316995929, 110.74809228068428], 16); // Default view if no data
+            }
         });
     </script>
 @endpush

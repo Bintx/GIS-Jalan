@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Jalan;
 use App\Models\KerusakanJalan;
-use App\Models\Regional;
+use App\Models\Regional; // Pastikan ini diimpor
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,6 +23,14 @@ class DashboardController extends Controller
         $totalJalan = Jalan::count();
         $totalLaporanKerusakan = KerusakanJalan::count();
         $totalUsers = User::count();
+        $totalRegional = Regional::count();
+
+        // Tambahkan penghitungan spesifik untuk RT, RW, Dusun
+        // KOREKSI: UBAH 'tipe_tipe_regional' menjadi 'tipe_regional'
+        $totalRt = Regional::where('tipe_regional', 'RT')->count();
+        $totalRw = Regional::where('tipe_regional', 'RW')->count();
+        $totalDusun = Regional::where('tipe_regional', 'Dusun')->count();
+
 
         // Statistik Laporan Berdasarkan Prioritas
         $prioritasLaporan = KerusakanJalan::select('klasifikasi_prioritas', DB::raw('count(*) as total'))
@@ -112,7 +120,7 @@ class DashboardController extends Controller
                     // Siapkan semua laporan kerusakan untuk popup
                     foreach ($jalan->kerusakanJalans as $report) {
                         $allDamageReports[] = [
-                            'id' => $report->id,
+                            'id' => $report->id, // Tambahkan baris ini untuk memastikan ID dikirim ke frontend
                             'tanggal_lapor' => $report->tanggal_lapor->format('d M Y'),
                             'tingkat_kerusakan' => $report->tingkat_kerusakan,
                             'tingkat_lalu_lintas' => $report->tingkat_lalu_lintas,
@@ -179,7 +187,11 @@ class DashboardController extends Controller
             'pejabatDesaUsers',
             'months',
             'reportsPerMonth',
-            'roadsGeoJsonForMiniMap'
+            'roadsGeoJsonForMiniMap',
+            'totalRegional',
+            'totalRt', // Tambahkan ini
+            'totalRw', // Tambahkan ini
+            'totalDusun' // Tambahkan ini
         ));
     }
 

@@ -111,7 +111,6 @@
             background: white;
             padding: 10px;
             border-radius: 5px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
             margin-top: 20px;
         }
 
@@ -185,7 +184,7 @@
 
             {{-- Legenda Warna Prioritas --}}
             <div class="map-legend">
-                <h6>Keterangan Prioritas Jalan:</h6>
+                <h6>Keterangan Prioritas Jalan :</h6>
                 <div class="map-legend-item">
                     <div class="map-legend-color" style="background-color: red;"></div>
                     <span>Prioritas Tinggi</span>
