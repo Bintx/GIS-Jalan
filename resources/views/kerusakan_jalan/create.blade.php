@@ -40,7 +40,7 @@
                         <option value="">Pilih Jalan</option>
                         @foreach ($jalans as $jalan)
                             <option value="{{ $jalan->id }}" {{ old('jalan_id') == $jalan->id ? 'selected' : '' }}>
-                                {{ $jalan->nama_jalan }}
+                                {{ $jalan->nama_jalan }} - (Kondisi Awal: {{ $jalan->kondisi_jalan }})
                                 (RT: {{ $jalan->regional->nama_regional ?? 'N/A' }}
                                 RW: {{ $jalan->rwRegional->nama_regional ?? 'N/A' }}
                                 Dusun: {{ $jalan->dusunRegional->nama_regional ?? 'N/A' }})

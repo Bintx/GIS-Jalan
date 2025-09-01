@@ -1,16 +1,13 @@
-{{-- resources/views/dashboard/map.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Peta Overview Jalan & Kerusakan')
 
 @push('styles')
     <style>
-        /* Tambahan: Fixed Header */
         .navbar-header {
             position: fixed;
             top: 0;
             left: 250px;
-            /* Sesuaikan jika sidebar bukan 250px */
             width: calc(100% - 250px);
             z-index: 1050;
             background-color: #fff;
@@ -20,7 +17,6 @@
 
         body {
             padding-top: 80px;
-            /* Agar konten tidak ketiban header */
             overflow-y: auto;
         }
 
@@ -105,6 +101,27 @@
             margin-top: 10px;
             border-radius: 5px;
         }
+
+        /* Gaya untuk legenda */
+        .map-legend {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .map-legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .map-legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
     </style>
 @endpush
 
@@ -160,6 +177,23 @@
             </form>
 
             <div id="mapid"></div>
+
+            {{-- Legenda Warna Prioritas --}}
+            <div class="map-legend">
+                <h6>Keterangan Prioritas Jalan :</h6>
+                <div class="map-legend-item">
+                    <div class="map-legend-color" style="background-color: red;"></div>
+                    <span>Prioritas Tinggi</span>
+                </div>
+                <div class="map-legend-item">
+                    <div class="map-legend-color" style="background-color: orange;"></div>
+                    <span>Prioritas Sedang</span>
+                </div>
+                <div class="map-legend-item">
+                    <div class="map-legend-color" style="background-color: green;"></div>
+                    <span>Prioritas Rendah</span>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -197,70 +231,97 @@
                     switch (properties.kondisi_awal) {
                         case 'rusak berat':
                             return 'red';
+                            break;
                         case 'rusak sedang':
                             return 'orange';
+                            break;
                         case 'rusak ringan':
                             return 'yellow';
+                            break;
                         case 'baik':
                             return 'green';
+                            break;
                         default:
                             return 'blue';
+                            break;
                     }
                 }
                 return 'blue';
             }
 
-            // Fungsi untuk membuat pop-up content
+            // pop-up content
             function createPopupContent(properties) {
                 let content = `<div class="info-box">`;
                 content += `<h5>${properties.nama_jalan}</h5>`;
                 content += `<p><strong>Panjang:</strong> ${properties.panjang_jalan} m</p>`;
                 content += `<p><strong>Kondisi Awal:</strong> ${properties.kondisi_awal}</p>`;
-                content += `<p><strong>Regional:</strong> ${properties.regional} (${properties.regional_tipe})</p>`;
+                content += `<p><strong>Regional:</strong> ${properties.regional}`;
 
-                let priorityText = properties.prioritas_klasifikasi;
-                let priorityClass = '';
-                if (priorityText === 'tinggi') priorityClass = 'priority-high';
-                else if (priorityText === 'sedang') priorityClass = 'priority-medium';
-                else if (priorityText === 'rendah') priorityClass = 'priority-low';
-                else if (priorityText === 'belum diklasifikasi') priorityClass = 'priority-unclassified';
+                // RW dan Dusun
+                if (properties.rw_regional && properties.rw_regional !== 'N/A') {
+                    content += `, RW: ${properties.rw_regional}`;
+                }
+                if (properties.dusun_regional && properties.dusun_regional !== 'N/A') {
+                    content += `, Dusun: ${properties.dusun_regional}`;
+                }
+                content += `</p>`;
 
-                content +=
-                    `<p><strong>Prioritas:</strong> <span class="priority-badge ${priorityClass}">${priorityText.toUpperCase()}</span></p>`;
 
                 if (properties.laporan_kerusakan && properties.laporan_kerusakan.length > 0) {
                     content += `<h6>Laporan Kerusakan Terbaru:</h6>`;
-                    const latestReports = properties.laporan_kerusakan.slice(0, 1);
-                    latestReports.forEach(laporan => {
-                        let statusText = laporan.status_perbaikan;
-                        let statusClass = '';
-                        if (statusText === 'belum diperbaiki') statusClass = 'status-belum';
-                        else if (statusText === 'dalam perbaikan') statusClass = 'status-dalam';
-                        else if (statusText === 'sudah diperbaiki') statusClass = 'status-sudah';
+                    // hanya laporan terbaru
+                    const latestReport = properties.laporan_kerusakan[
+                        0];
+                    let statusText = latestReport.status_perbaikan;
+                    let statusClass = '';
+                    if (statusText === 'belum diperbaiki') statusClass = 'status-belum';
+                    else if (statusText === 'dalam perbaikan') statusClass = 'status-dalam';
+                    else if (statusText === 'sudah diperbaiki') statusClass = 'status-sudah';
 
-                        content += `<div class="mb-2 nested-info-box">`;
-                        content += `<p><strong>Tanggal:</strong> ${laporan.tanggal_lapor}</p>`;
-                        content += `<p><strong>Tingkat:</strong> ${laporan.tingkat_kerusakan}</p>`;
+                    // Ambil prioritas jalan dari properti jalan, bukan dari laporan kerusakan
+                    let priorityTextJalan = properties.prioritas_klasifikasi;
+                    let priorityClassJalan = '';
+                    if (priorityTextJalan === 'tinggi') priorityClassJalan = 'priority-high';
+                    else if (priorityTextJalan === 'sedang') priorityClassJalan = 'priority-medium';
+                    else if (priorityTextJalan === 'rendah') priorityClassJalan = 'priority-low';
+                    else if (priorityTextJalan === 'belum diklasifikasi') priorityClassJalan =
+                        'priority-unclassified';
+
+
+                    content += `<div class="mb-2 nested-info-box">`;
+                    content += `<p><strong>Tanggal Lapor:</strong> ${latestReport.tanggal_lapor}</p>`;
+                    content += `<p><strong>Tingkat Kerusakan:</strong> ${latestReport.tingkat_kerusakan}</p>`;
+                    if (latestReport.tingkat_lalu_lintas) {
                         content +=
-                            `<p><strong>Prioritas Laporan:</strong> ${laporan.prioritas ? `<span class="priority-badge ${priorityClass}">${laporan.prioritas.toUpperCase()}</span>` : 'Belum Diklasifikasi'}</p>`;
-                        content +=
-                            `<p><strong>Status:</strong> <span class="status-badge ${statusClass}">${statusText.toUpperCase()}</span></p>`;
-                        if (laporan.deskripsi) content +=
-                            `<p><strong>Deskripsi:</strong> ${laporan.deskripsi}</p>`;
-                        if (laporan.foto_url) {
-                            content +=
-                                `<p><strong>Foto:</strong></p><img src="${laporan.foto_url}" class="foto-kerusakan" alt="Foto Kerusakan">`;
-                        }
-                        content += `</div>`;
-                    });
+                            `<p><strong>Tingkat Lalu Lintas:</strong> ${latestReport.tingkat_lalu_lintas}</p>`;
+                    }
+                    // Prioritas jalan sekarang diletakkan di sini
+                    content +=
+                        `<p><strong>Prioritas Jalan:</strong> <span class="priority-badge ${priorityClassJalan}">${priorityTextJalan.toUpperCase()}</span></p>`;
+                    content +=
+                        `<p><strong>Status Perbaikan:</strong> <span class="status-badge ${statusClass}">${statusText.toUpperCase()}</span></p>`;
+                    content += `</div>`;
+
                     if (properties.laporan_kerusakan.length > 1) {
                         content += `<small>(${properties.laporan_kerusakan.length - 1} laporan lain)</small>`;
                     }
+                    // Link ke halaman show laporan kerusakan untuk laporan terbaru
                     content +=
-                        `<p><a href="{{ route('kerusakan-jalan.index') }}?jalan_id=${properties.id}" target="_blank">Lihat Semua Laporan Jalan Ini</a></p>`;
+                        `<p class="mt-3"><a href="{{ route('kerusakan-jalan.show', '') }}/${latestReport.id}">Lihat Detail Laporan Terbaru</a></p>`; // target="_blank" dihapus
 
                 } else {
                     content += `<p>Tidak ada laporan kerusakan jalan.</p>`;
+                    // Jika tidak ada laporan, tetap tampilkan prioritas jalan
+                    let priorityTextJalan = properties.prioritas_klasifikasi;
+                    let priorityClassJalan = '';
+                    if (priorityTextJalan === 'tinggi') priorityClassJalan = 'priority-high';
+                    else if (priorityTextJalan === 'sedang') priorityClassJalan = 'priority-medium';
+                    else if (priorityTextJalan === 'rendah') priorityClassJalan = 'priority-low';
+                    else if (priorityTextJalan === 'belum diklasifikasi') priorityClassJalan =
+                        'priority-unclassified';
+
+                    content +=
+                        `<p><strong>Prioritas Jalan:</strong> <span class="priority-badge ${priorityClassJalan}">${priorityTextJalan.toUpperCase()}</span></p>`;
                 }
                 return content;
             }

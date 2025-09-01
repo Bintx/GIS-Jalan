@@ -42,7 +42,7 @@ class JalanController extends Controller
             });
         }
 
-        $jalans = $queryJalan->latest()->paginate(10)->withQueryString(); // Tambahkan withQueryString()
+        $jalans = $queryJalan->latest()->get(); // Tambahkan withQueryString()
 
         // Ambil semua regional untuk filter dropdown
         $allRegionalsForFilter = Regional::all();

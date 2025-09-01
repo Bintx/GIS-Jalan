@@ -1,11 +1,10 @@
-{{-- resources/views/jalan/index.blade.php --}}
 @extends('layouts.app')
 
-@section('title', 'Daftar Data Jalan') {{-- Judul halaman yang benar --}}
+@section('title', 'Daftar Data Jalan')
 
 @section('content')
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-        <h6 class="fw-semibold mb-0">Daftar Data Jalan</h6> {{-- Judul di dalam halaman --}}
+        <h6 class="fw-semibold mb-0">Daftar Data Jalan</h6>
         <ul class="d-flex align-items-center gap-2">
             <li class="fw-medium">
                 <a href="{{ route('dashboard') }}" class="d-flex align-items-center gap-1 hover-text-primary">
@@ -14,20 +13,20 @@
                 </a>
             </li>
             <li>-</li>
-            <li class="fw-medium">Data Jalan</li> {{-- Breadcrumb yang benar --}}
+            <li class="fw-medium">Data Jalan</li>
         </ul>
     </div>
 
     <div class="card h-100">
         <div class="card-body p-24">
-            {{-- Notifikasi SweetAlert2 akan muncul di sini (dari layouts/app.blade.php) --}}
+            {{-- Notifikasi SweetAlert2  --}}
 
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="card-title mb-0">Daftar Data Jalan</h5> {{-- Judul kartu --}}
+                <h5 class="card-title mb-0">Daftar Data Jalan</h5>
                 <a href="{{ route('jalan.create') }}" class="btn btn-primary btn-sm">Tambah Jalan</a>
             </div>
 
-            {{-- Filter Form untuk Data Jalan --}}
+            {{-- Filter Form Data Jalan --}}
             <form action="{{ route('jalan.index') }}" method="GET" class="mb-4">
                 <div class="row g-3">
                     <div class="col-md-3">
@@ -115,9 +114,9 @@
                 </table>
             </div>
 
-            <div class="mt-4">
+            {{-- <div class="mt-4">
                 {{ $jalans->links() }}
-            </div>
+            </div> --}}
         </div>
     </div>
 @endsection

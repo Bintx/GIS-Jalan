@@ -1,4 +1,3 @@
-{{-- resources/views/users/index.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Manajemen Pengguna')
@@ -20,7 +19,7 @@
 
     <div class="card h-100">
         <div class="card-body p-24">
-            {{-- Notifikasi SweetAlert2 akan muncul di sini --}}
+            {{-- Notifikasi SweetAlert2  --}}
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="card-title mb-0">Daftar Pengguna</h5>
@@ -28,14 +27,13 @@
             </div>
 
             <div class="table-responsive">
-                <table id="usersTable" class="table table-bordered table-hover text-center"> {{-- Tambahkan ID dan text-center --}}
+                <table id="usersTable" class="table table-bordered table-hover text-center">
                     <thead>
                         <tr>
                             <th class="text-center">#</th>
                             <th class="text-center">Nama</th>
                             <th class="text-center">Email</th>
                             <th class="text-center">Role</th>
-                            <th class="text-center">Regional</th>
                             <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -54,8 +52,7 @@
                                         <span class="badge bg-secondary">{{ ucfirst($user->role) }}</span>
                                     @endif
                                 </td>
-                                <td>{{ $user->regional->nama_regional ?? 'Tidak Ada' }}
-                                    ({{ $user->regional->tipe_regional ?? '-' }})</td>
+
                                 <td>
                                     <a href="{{ route('users.show', $user->id) }}" class="btn btn-info btn-sm">Lihat</a>
                                     <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm">Edit</a>

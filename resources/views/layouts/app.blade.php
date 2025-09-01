@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title', config('app.name', 'Wowdash Dashboard'))</title>
-    <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon.png') }}" sizes="16x16">
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/logo-atas.png') }}" sizes="16x16">
 
     <link rel="stylesheet" href="{{ asset('assets/css/remixicon.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/lib/bootstrap.min.css') }}">
@@ -40,7 +40,8 @@
             /* Sesuaikan jika sidebar bukan 250px */
             width: calc(100% - 250px);
             z-index: 1050;
-            background-color: #fff;
+            /* background-color: #fff; */
+            /* BARIS INI DIHAPUS */
             /* Ensure this matches your theme's background */
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             /* Keep original padding unless it causes issues */
@@ -55,7 +56,7 @@
         }
 
         /* Jika Anda memiliki toggle sidebar yang mengubah lebar sidebar, Anda perlu menambahkan CSS tambahan
-           misalnya, jika ada class 'sidebar-collapsed' pada body atau elemen lain:
+            misalnya, jika ada class 'sidebar-collapsed' pada body atau elemen lain:
         body.sidebar-collapsed .navbar-header {
             left: 80px; // Ganti 80px dengan lebar sidebar saat collapsed
             width: calc(100% - 80px);

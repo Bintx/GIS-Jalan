@@ -1,4 +1,3 @@
-{{-- resources/views/kerusakan_jalan/index.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Daftar Laporan Kerusakan Jalan')
@@ -20,22 +19,22 @@
 
     <div class="card h-100">
         <div class="card-body p-24">
-            {{-- Notifikasi SweetAlert2 akan muncul di sini (dari layouts/app.blade.php) --}}
+            {{-- Notifikasi SweetAlert2  --}}
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="card-title mb-0">Daftar Laporan Kerusakan</h5>
                 <div>
-                    {{-- Tombol Tambah Laporan (Admin & Pejabat Desa bisa masuk route ini) --}}
+                    {{-- Tombol Tambah Laporan  --}}
                     <a href="{{ route('kerusakan-jalan.create') }}" class="btn btn-primary btn-sm me-2">Tambah Laporan</a>
 
 
-                    {{-- Tombol Export PDF (Hanya Admin) --}}
+                    {{--  Export PDF  --}}
                     @can('admin')
                         <a href="{{ route('kerusakan-jalan.export-pdf') }}" class="btn btn-info btn-sm me-2">Export PDF</a>
-                    @endcan
 
-                    {{-- Tombol Export Excel (Hanya Admin) --}}
-                    @can('admin')
+
+                        {{-- Export Excel  --}}
+
                         <a href="{{ route('kerusakan-jalan.export-excel') }}" class="btn btn-success btn-sm">Export Excel</a>
                     @endcan
                 </div>
