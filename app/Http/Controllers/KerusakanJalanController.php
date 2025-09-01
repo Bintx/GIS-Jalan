@@ -46,7 +46,7 @@ class KerusakanJalanController extends Controller
             $queryLaporan->where('status_perbaikan', str_replace('_', ' ', $filterStatusPerbaikan));
         }
 
-        $kerusakanJalans = $queryLaporan->latest()->paginate(10)->withQueryString();
+        $kerusakanJalans = $queryLaporan->latest()->get();
         $allJalanNames = Jalan::select('id', 'nama_jalan')->get();
 
         return view('kerusakan_jalan.index', compact(
