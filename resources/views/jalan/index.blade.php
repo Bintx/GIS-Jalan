@@ -114,9 +114,9 @@
                 </table>
             </div>
 
-            <div class="mt-4">
+            {{-- <div class="mt-4">
                 {{ $jalans->links() }}
-            </div>
+            </div> --}}
         </div>
     </div>
 @endsection
