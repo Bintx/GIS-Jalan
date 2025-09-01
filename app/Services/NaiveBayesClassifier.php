@@ -15,7 +15,7 @@ class NaiveBayesClassifier
 
     // Probabilitas likelihood (Likelihood Probabilities)
     // Ini adalah P(Fitur | Prioritas) - probabilitas fitur tertentu
-    // diberikan kategori prioritas. Data ini hipotesis/contoh.
+    // diberikan kategori prioritas.
 
     private array $likelihoods = [
         'tingkat_kerusakan' => [
@@ -28,7 +28,7 @@ class NaiveBayesClassifier
             'sedang' => ['rendah' => 0.4, 'sedang' => 0.4, 'tinggi' => 0.2],
             'rendah' => ['rendah' => 0.7, 'sedang' => 0.2, 'tinggi' => 0.1],
         ],
-        // Untuk 'panjang_ruas_rusak', kita akan mendiskritisasi nilai numerik
+        // Untuk 'panjang_ruas_rusak',akan mendiskritisasi nilai numerik
         // dan menggunakan probabilitas ini.
         'panjang_ruas_rusak_category' => [
             'tinggi' => ['pendek' => 0.1, 'menengah' => 0.3, 'panjang' => 0.6],
@@ -99,7 +99,7 @@ class NaiveBayesClassifier
             return 'pendek';
         } elseif ($panjangRuasRusak <= 500) { // Antara 100.01 dan 500
             return 'menengah';
-        } else { // Lebih dari 500
+        } else {
             return 'panjang';
         }
     }

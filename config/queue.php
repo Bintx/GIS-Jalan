@@ -102,11 +102,11 @@ return [
     | Supported drivers: "database-uuids", "dynamodb", "file", "null"
     |
     */
+    // config/queue.php
 
     'failed' => [
         'driver' => env('QUEUE_FAILED_DRIVER', 'database-uuids'),
-        'database' => env('DB_CONNECTION', 'sqlite'),
+        'database' => env('DB_CONNECTION', 'pgsql'), // <-- PASTIKAN INI pgsql
         'table' => 'failed_jobs',
     ],
-
 ];

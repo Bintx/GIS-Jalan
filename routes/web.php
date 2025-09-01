@@ -8,7 +8,7 @@ use App\Http\Controllers\ProfileController; // Dari Breeze
 use App\Http\Controllers\JalanController; // Controller GIS Anda
 use App\Http\Controllers\DashboardController; // Pastikan ini ada
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('regional', RegionalController::class);
     Route::resource('jalan', JalanController::class);

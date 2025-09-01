@@ -1,4 +1,3 @@
-{{-- resources/views/regional/index.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Data Master Regional')
@@ -20,22 +19,16 @@
 
     <div class="card h-100">
         <div class="card-body p-24">
-            {{-- Notifikasi SweetAlert2 akan muncul di sini --}}
+            {{-- Notifikasi SweetAlert2 --}}
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="card-title mb-0">Daftar Regional</h5>
                 <a href="{{ route('regional.create') }}" class="btn btn-primary btn-sm">Tambah Regional</a>
             </div>
 
-            {{-- Filter Form (Ini akan tetap berfungsi di sisi server) --}}
+            {{-- Filter Form --}}
             <form action="{{ route('regional.index') }}" method="GET" class="mb-4">
                 <div class="row g-3">
-                    {{-- <div class="col-md-4">
-                        <label for="filter_nama_regional" class="form-label text-sm">Nama Regional</label>
-                        <input type="text" class="form-control form-control-sm" id="filter_nama_regional"
-                            name="nama_regional" value="{{ $filterNamaRegional }}" placeholder="Cari nama regional...">
-                    </div> --}}
-
                     <div class="col-md-4">
                         <label for="filter_tipe_regional" class="form-label text-sm">Tipe Regional</label>
                         <select class="form-select form-select-sm" id="filter_tipe_regional" name="tipe_regional">

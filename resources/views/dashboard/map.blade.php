@@ -1,16 +1,13 @@
-{{-- resources/views/dashboard/map.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Peta Overview Jalan & Kerusakan')
 
 @push('styles')
     <style>
-        /* Tambahan: Fixed Header */
         .navbar-header {
             position: fixed;
             top: 0;
             left: 250px;
-            /* Sesuaikan jika sidebar bukan 250px */
             width: calc(100% - 250px);
             z-index: 1050;
             background-color: #fff;
@@ -20,7 +17,6 @@
 
         body {
             padding-top: 80px;
-            /* Agar konten tidak ketiban header */
             overflow-y: auto;
         }
 
@@ -253,7 +249,7 @@
                 return 'blue';
             }
 
-            // Fungsi untuk membuat pop-up content
+            // pop-up content
             function createPopupContent(properties) {
                 let content = `<div class="info-box">`;
                 content += `<h5>${properties.nama_jalan}</h5>`;
@@ -261,7 +257,7 @@
                 content += `<p><strong>Kondisi Awal:</strong> ${properties.kondisi_awal}</p>`;
                 content += `<p><strong>Regional:</strong> ${properties.regional}`;
 
-                // Tambahkan RW dan Dusun jika ada
+                // RW dan Dusun
                 if (properties.rw_regional && properties.rw_regional !== 'N/A') {
                     content += `, RW: ${properties.rw_regional}`;
                 }
@@ -273,10 +269,9 @@
 
                 if (properties.laporan_kerusakan && properties.laporan_kerusakan.length > 0) {
                     content += `<h6>Laporan Kerusakan Terbaru:</h6>`;
-                    // Tampilkan hanya laporan terbaru
+                    // hanya laporan terbaru
                     const latestReport = properties.laporan_kerusakan[
-                        0]; // Karena sudah diurutkan descending di controller
-
+                        0];
                     let statusText = latestReport.status_perbaikan;
                     let statusClass = '';
                     if (statusText === 'belum diperbaiki') statusClass = 'status-belum';
