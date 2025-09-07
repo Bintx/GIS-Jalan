@@ -49,8 +49,8 @@
                 <dt class="col-sm-3">Panjang Jalan:</dt>
                 <dd class="col-sm-9">{{ $jalan->panjang_jalan }} meter</dd>
 
-                <dt class="col-sm-3">Kondisi Awal:</dt>
-                <dd class="col-sm-9">{{ $jalan->kondisi_jalan }}</dd>
+                <dt class="col-sm-3">Jenis Jalan:</dt>
+                <dd class="col-sm-9">{{ $jalan->jenis_jalan }}</dd>
 
                 <dt class="col-sm-3">Regional RT:</dt>
                 <dd class="col-sm-9">{{ $jalan->regional->nama_regional ?? 'N/A' }}</dd>
@@ -63,8 +63,9 @@
             </dl>
 
             <h5 class="card-title mb-4">Visualisasi Geometri</h5>
-            <div id="mapid" class="mb-4"></div>
-
+            <div id="mapid"></div>
+            <input type="hidden" name="geometri_json" id="geometri_json"
+                value="{{ old('geometri_json', $existingGeomCoords) }}">
             <div class="d-flex justify-content-end">
                 <a href="{{ route('jalan.edit', $jalan->id) }}" class="btn btn-warning me-2">Edit</a>
                 <a href="{{ route('jalan.index') }}" class="btn btn-secondary">Kembali</a>
@@ -81,28 +82,23 @@
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
 
-            map.invalidateSize(); // Memastikan peta dirender dengan benar
+            map.invalidateSize();
 
-            var jalanGeometri = {!! json_encode($jalan->geometri_json) !!}; // Ambil objek GeoJSON LineString lengkap dari PHP
+            // Ambil koordinat lama dari hidden input
+            var existingGeomCoords = [];
+            try {
+                existingGeomCoords = JSON.parse(document.getElementById('geometri_json').value);
+            } catch (e) {
+                existingGeomCoords = [];
+            }
 
-            if (jalanGeometri && jalanGeometri.type === 'LineString' && jalanGeometri.coordinates && jalanGeometri
-                .coordinates.length > 0) {
-                try {
-                    var geojsonLayer = L.geoJSON(jalanGeometri, {
-                        style: function(feature) {
-                            return {
-                                color: 'blue',
-                                weight: 4
-                            };
-                        }
-                    }).addTo(map);
-
-                    map.fitBounds(geojsonLayer.getBounds());
-                } catch (e) {
-                    console.error("Error saat menambahkan GeoJSON layer di Detail Jalan:", e);
-                    map.setView([-7.701469, 110.746014], 16);
-                }
+            if (existingGeomCoords && existingGeomCoords.length > 0) {
+                var polyline = L.polyline(existingGeomCoords, {
+                    color: 'red'
+                }).addTo(map);
+                map.fitBounds(polyline.getBounds());
             } else {
+                // fallback kalau belum ada data
                 map.setView([-7.701469, 110.746014], 16);
             }
         });

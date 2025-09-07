@@ -61,7 +61,8 @@
 
                 <dt class="col-sm-4">Pelapor:</dt>
                 <dd class="col-sm-8">{{ $kerusakanJalan->user->name ?? 'N/A' }}</dd>
-
+                <dt class="col-sm-4">Jenis Jalan:</dt>
+                <dd class="col-sm-8 text-capitalize">{{ $kerusakanJalan->jalan->jenis_jalan ?? 'N/A' }}</dd>
                 <dt class="col-sm-4">Tingkat Kerusakan:</dt>
                 <dd class="col-sm-8">{{ $kerusakanJalan->tingkat_kerusakan }}</dd>
 

@@ -62,89 +62,64 @@
                     @enderror
                 </div>
                 <div class="mb-3">
-                    <label for="kondisi_jalan" class="form-label">Kondisi Awal Jalan</label>
-                    <select class="form-select @error('kondisi_jalan') is-invalid @enderror" id="kondisi_jalan"
-                        name="kondisi_jalan" required>
-                        <option value="">Pilih Kondisi</option>
-                        <option value="baik"
-                            {{ old('kondisi_jalan', $jalan->kondisi_jalan) == 'baik' ? 'selected' : '' }}>Baik</option>
-                        <option value="rusak ringan" {{ old('kondisi_jalan') == 'rusak ringan' ? 'selected' : '' }}>Rusak
-                            Ringan</option>
-                        <option value="rusak sedang" {{ old('kondisi_jalan') == 'rusak sedang' ? 'selected' : '' }}>Rusak
-                            Sedang</option>
-                        <option value="rusak berat" {{ old('kondisi_jalan') == 'rusak berat' ? 'selected' : '' }}>Rusak
-                            Berat</option>
+                    <label for="jenis_jalan" class="form-label">Jenis Jalan</label>
+                    <select class="form-select" id="jenis_jalan" name="jenis_jalan" required>
+                        <option value="">Pilih Jenis Jalan</option>
+                        <option value="aspal" {{ old('jenis_jalan', $jalan->jenis_jalan) == 'aspal' ? 'selected' : '' }}>
+                            Aspal</option>
+                        <option value="beton" {{ old('jenis_jalan', $jalan->jenis_jalan) == 'beton' ? 'selected' : '' }}>
+                            Beton</option>
+                        <option value="paving" {{ old('jenis_jalan', $jalan->jenis_jalan) == 'paving' ? 'selected' : '' }}>
+                            Paving</option>
+                        <option value="tanah" {{ old('jenis_jalan', $jalan->jenis_jalan) == 'tanah' ? 'selected' : '' }}>
+                            Tanah</option>
                     </select>
-                    @error('kondisi_jalan')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
                 </div>
 
-                {{-- Bagian Dropdown Regional --}}
-                <div class="mb-3">
-                    <label class="form-label">Regional</label>
-                    <div class="row g-2">
-                        <div class="col-md-4">
-                            <label for="rt_regional_id" class="form-label text-sm">RT</label>
-                            <select class="form-select @error('rt_regional_id') is-invalid @enderror" id="rt_regional_id"
-                                name="rt_regional_id" required>
-                                <option value="">Pilih RT</option>
-                                @foreach ($rtRegionals as $regional)
-                                    <option value="{{ $regional->id }}"
-                                        {{ old('rt_regional_id', $selectedRtId) == $regional->id ? 'selected' : '' }}>
-                                        {{ $regional->nama_regional }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('rt_regional_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label for="rw_regional_id" class="form-label text-sm">RW</label>
-                            <select class="form-select @error('rw_regional_id') is-invalid @enderror" id="rw_regional_id"
-                                name="rw_regional_id" required>
-                                <option value="">Pilih RW</option>
-                                @foreach ($rwRegionals as $regional)
-                                    <option value="{{ $regional->id }}"
-                                        {{ old('rw_regional_id', $selectedRwId) == $regional->id ? 'selected' : '' }}>
-                                        {{ $regional->nama_regional }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('rw_regional_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label for="dusun_regional_id" class="form-label text-sm">Dusun</label>
-                            <select class="form-select @error('dusun_regional_id') is-invalid @enderror"
-                                id="dusun_regional_id" name="dusun_regional_id" required>
-                                <option value="">Pilih Dusun</option>
-                                @foreach ($dusunRegionals as $regional)
-                                    <option value="{{ $regional->id }}"
-                                        {{ old('dusun_regional_id', $selectedDusunId) == $regional->id ? 'selected' : '' }}>
-                                        {{ $regional->nama_regional }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('dusun_regional_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                {{-- (Sisa form tidak berubah) --}}
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="regional_id" class="form-label">Regional RT</label>
+                        <select class="form-select" id="regional_id" name="regional_id" required>
+                            <option value="">Pilih RT</option>
+                            @foreach ($regionals->where('tipe_regional', 'RT') as $regional)
+                                <option value="{{ $regional->id }}"
+                                    {{ $jalan->regional_id == $regional->id ? 'selected' : '' }}>
+                                    {{ $regional->nama_regional }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                    @if ($errors->has('rt_regional_id') || $errors->has('rw_regional_id') || $errors->has('dusun_regional_id'))
-                        <div class="text-danger mt-1">Pastikan Anda memilih RT, RW, dan Dusun.</div>
-                    @endif
+                    <div class="col-md-4 mb-3">
+                        <label for="rw_regional_id" class="form-label">Regional RW</label>
+                        <select class="form-select" id="rw_regional_id" name="rw_regional_id" required>
+                            <option value="">Pilih RW</option>
+                            @foreach ($regionals->where('tipe_regional', 'RW') as $regional)
+                                <option value="{{ $regional->id }}"
+                                    {{ $jalan->rw_regional_id == $regional->id ? 'selected' : '' }}>
+                                    {{ $regional->nama_regional }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="dusun_regional_id" class="form-label">Regional Dusun</label>
+                        <select class="form-select" id="dusun_regional_id" name="dusun_regional_id" required>
+                            <option value="">Pilih Dusun</option>
+                            @foreach ($regionals->where('tipe_regional', 'Dusun') as $regional)
+                                <option value="{{ $regional->id }}"
+                                    {{ $jalan->dusun_regional_id == $regional->id ? 'selected' : '' }}>
+                                    {{ $regional->nama_regional }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
                 {{-- Akhir Bagian Dropdown Regional --}}
 
                 <div class="mb-3">
                     <label class="form-label">Gambar Garis Jalan (Peta)</label>
                     <div id="mapid"></div>
-                    <input type="hidden" name="geometri_coords" id="geometri_coords"
-                        value="{{ old('geometri_coords', $existingGeomCoords) }}">
-                    @error('geometri_coords')
+                    <input type="hidden" name="geometri_json" id="geometri_json"
+                        value="{{ old('geometri_json', $existingGeomCoords) }}">
+                    @error('geometri_json')
                         <div class="text-danger mt-2">Peta: {{ $message }}</div>
                     @enderror
                     <small class="form-text text-muted">Gambar ulang garis jalan atau edit yang sudah ada. Klik dua kali
@@ -196,7 +171,7 @@
                     });
                     map.addControl(drawControl);
 
-                    var existingGeomCoords = JSON.parse(document.getElementById('geometri_coords').value);
+                    var existingGeomCoords = JSON.parse(document.getElementById('geometri_json').value);
                     if (existingGeomCoords && existingGeomCoords.length > 0) {
                         var polyline = L.polyline(existingGeomCoords, {
                             color: 'red'
@@ -214,7 +189,7 @@
                         var coords = latlngs.map(function(latlng) {
                             return [latlng.lat, latlng.lng];
                         });
-                        document.getElementById('geometri_coords').value = JSON.stringify(coords);
+                        document.getElementById('geometri_json').value = JSON.stringify(coords);
                     });
 
                     map.on(L.Draw.Event.EDITED, function(event) {
@@ -224,14 +199,14 @@
                                 var coords = latlngs.map(function(latlng) {
                                     return [latlng.lat, latlng.lng];
                                 });
-                                document.getElementById('geometri_coords').value = JSON.stringify(
+                                document.getElementById('geometri_json').value = JSON.stringify(
                                     coords);
                             }
                         });
                     });
 
                     map.on(L.Draw.Event.DELETED, function(event) {
-                        document.getElementById('geometri_coords').value = '[]';
+                        document.getElementById('geometri_json').value = '[]';
                     });
                 } else {
                     console.warn("L.Control.Draw belum terdefinisi. Mencoba lagi dalam 100ms...");

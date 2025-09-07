@@ -36,16 +36,17 @@
                     </div>
 
                     <div class="col-md-3">
-                        <label for="filter_kondisi_jalan" class="form-label text-sm">Kondisi Awal</label>
-                        <select class="form-select form-select-sm" id="filter_kondisi_jalan" name="kondisi_jalan">
-                            <option value="">Semua Kondisi</option>
-                            <option value="baik" {{ $filterKondisiJalan === 'baik' ? 'selected' : '' }}>Baik</option>
-                            <option value="rusak ringan" {{ $filterKondisiJalan === 'rusak ringan' ? 'selected' : '' }}>
-                                Rusak Ringan</option>
-                            <option value="rusak sedang" {{ $filterKondisiJalan === 'rusak sedang' ? 'selected' : '' }}>
-                                Rusak Sedang</option>
-                            <option value="rusak berat" {{ $filterKondisiJalan === 'rusak berat' ? 'selected' : '' }}>Rusak
-                                Berat</option>
+                        <label for="filter_jenis_jalan" class="form-label text-sm">Jenis Jalan</label>
+                        <select class="form-select form-select-sm" id="filter_jenis_jalan" name="jenis_jalan">
+                            <option value="">Semua Jenis</option>
+                            <option value="aspal" {{ $filterJenisJalan === 'aspal' ? 'selected' : '' }}>
+                                aspal</option>
+                            <option value="beton" {{ $filterJenisJalan === 'beton' ? 'selected' : '' }}>
+                                beton</option>
+                            <option value="paving" {{ $filterJenisJalan === 'paving' ? 'selected' : '' }}>
+                                paving</option>
+                            <option value="tanah" {{ $filterJenisJalan === 'tanah' ? 'selected' : '' }}>
+                                tanah</option>
                         </select>
                     </div>
 
@@ -76,7 +77,7 @@
                             <th class="text-center">#</th> {{-- Tambahkan text-center --}}
                             <th class="text-center">Nama Jalan</th> {{-- Tambahkan text-center --}}
                             <th class="text-center">Panjang (m)</th> {{-- Tambahkan text-center --}}
-                            <th class="text-center">Kondisi Awal</th> {{-- Tambahkan text-center --}}
+                            <th class="text-center">Jenis Jalan</th> {{-- Tambahkan text-center --}}
                             <th class="text-center">Regional RT</th> {{-- Tambahkan text-center --}}
                             <th class="text-center">Regional RW</th> {{-- Tambahkan text-center --}}
                             <th class="text-center">Regional Dusun</th> {{-- Tambahkan text-center --}}
@@ -89,7 +90,7 @@
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $jalan->nama_jalan }}</td>
                                 <td>{{ $jalan->panjang_jalan }}</td>
-                                <td>{{ $jalan->kondisi_jalan }}</td>
+                                <td>{{ $jalan->jenis_jalan }}</td>
                                 <td>{{ $jalan->regional->nama_regional ?? 'N/A' }}</td>
                                 <td>{{ $jalan->rwRegional->nama_regional ?? 'N/A' }}</td>
                                 <td>{{ $jalan->dusunRegional->nama_regional ?? 'N/A' }}</td>
