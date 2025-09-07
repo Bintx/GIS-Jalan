@@ -198,7 +198,7 @@
     </div>
 @endsection
 
-@push('scripts')
+{{-- @push('scripts')
     <script>
         $(document).ready(function() {
             var map = L.map('mapid'); // Inisialisasi peta tanpa setView awal
@@ -357,6 +357,132 @@
                     console.error("Error fitting map bounds to all features:", e);
                     map.setView([-7.634317316995929, 110.74809228068428],
                         16); // Fallback ke Jelobo jika ada error
+                }
+            }
+        });
+    </script>
+@endpush --}}
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            var map = L.map('mapid');
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            map.invalidateSize();
+
+            var roadsData = {!! json_encode($roadsGeoJson) !!};
+            console.log("Roads GeoJSON:", roadsData);
+
+            // Fungsi untuk mendapatkan warna berdasarkan prioritas
+            function getColorForPath(properties) {
+                switch ((properties.prioritas_klasifikasi || '').toLowerCase()) {
+                    case 'tinggi':
+                        return 'red';
+                    case 'sedang':
+                        return 'orange';
+                    case 'rendah':
+                        return 'green';
+                    case 'belum diklasifikasi':
+                        return 'gray';
+                    default:
+                        // fallback ke kondisi awal
+                        switch ((properties.kondisi_awal || '').toLowerCase()) {
+                            case 'rusak berat':
+                                return 'red';
+                            case 'rusak sedang':
+                                return 'orange';
+                            case 'rusak ringan':
+                                return 'yellow';
+                            case 'baik':
+                                return 'green';
+                            default:
+                                return 'blue';
+                        }
+                }
+            }
+
+            // Fungsi popup
+            function createPopupContent(properties) {
+                let content = `<div class="info-box">`;
+                content += `<h5>${properties.nama_jalan}</h5>`;
+                content += `<p><strong>Panjang:</strong> ${properties.panjang_jalan} m</p>`;
+                content += `<p><strong>Kondisi Awal:</strong> ${properties.kondisi_awal}</p>`;
+                content += `<p><strong>Regional:</strong> ${properties.regional}`;
+                if (properties.rw_regional && properties.rw_regional !== 'N/A') content +=
+                    `, RW: ${properties.rw_regional}`;
+                if (properties.dusun_regional && properties.dusun_regional !== 'N/A') content +=
+                    `, Dusun: ${properties.dusun_regional}`;
+                content += `</p>`;
+
+                // Prioritas jalan
+                let priorityText = properties.prioritas_klasifikasi || 'Belum Diklasifikasi';
+                let priorityClass = '';
+                switch (priorityText.toLowerCase()) {
+                    case 'tinggi':
+                        priorityClass = 'priority-high';
+                        break;
+                    case 'sedang':
+                        priorityClass = 'priority-medium';
+                        break;
+                    case 'rendah':
+                        priorityClass = 'priority-low';
+                        break;
+                    case 'belum diklasifikasi':
+                        priorityClass = 'priority-unclassified';
+                        break;
+                    default:
+                        priorityClass = 'priority-unclassified';
+                }
+                content +=
+                    `<p><strong>Prioritas Jalan:</strong> <span class="priority-badge ${priorityClass}">${priorityText.toUpperCase()}</span></p>`;
+
+                // Status perbaikan terbaru
+                if (properties.laporan_kerusakan && properties.laporan_kerusakan.length > 0) {
+                    const latestReport = properties.laporan_kerusakan[0];
+                    let statusText = latestReport.status_perbaikan || 'Belum Diperbaiki';
+                    let statusClass = '';
+                    if (statusText.toLowerCase() === 'belum diperbaiki') statusClass = 'status-belum';
+                    else if (statusText.toLowerCase() === 'dalam perbaikan') statusClass = 'status-dalam';
+                    else if (statusText.toLowerCase() === 'sudah diperbaiki') statusClass = 'status-sudah';
+                    content +=
+                        `<p><strong>Status Perbaikan:</strong> <span class="status-badge ${statusClass}">${statusText.toUpperCase()}</span></p>`;
+                }
+
+                content += `</div>`;
+                return content;
+            }
+
+            L.geoJSON(roadsData, {
+                style: function(feature) {
+                    return {
+                        color: getColorForPath(feature.properties),
+                        weight: 5,
+                        opacity: 0.7
+                    };
+                },
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties && feature.geometry && feature.geometry.coordinates &&
+                        feature.geometry.coordinates.length > 0) {
+                        layer.bindPopup(createPopupContent(feature.properties), {
+                            maxWidth: 300
+                        });
+                    }
+                }
+            }).addTo(map);
+
+            // Sesuaikan view peta
+            if (roadsData.length === 0) {
+                map.setView([-7.634317316995929, 110.74809228068428], 16);
+            } else {
+                try {
+                    var allFeatures = L.geoJSON(roadsData);
+                    map.fitBounds(allFeatures.getBounds());
+                } catch (e) {
+                    console.error("Error fitting map bounds:", e);
+                    map.setView([-7.634317316995929, 110.74809228068428], 16);
                 }
             }
         });

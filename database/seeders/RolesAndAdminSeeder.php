@@ -36,16 +36,50 @@ class RolesAndAdminSeeder extends Seeder
                 'email_verified_at' => now(), // Verifikasi langsung
             ]
         );
-
-        // Anda bisa menambahkan user lain di sini jika diperlukan
-        // User::firstOrCreate(
-        //     ['email' => 'user@example.com'],
-        //     [
-        //         'name' => 'Contoh User',
-        //         'password' => Hash::make('password'),
-        //         'role' => 'pejabat_desa',
-        //         'email_verified_at' => now(),
-        //     ]
-        // );
+        User::firstOrCreate(
+            ['email' => 'kadusjelobo@example.com'], // Kriteria pencarian
+            [
+                'name' => 'kadus jelobo',
+                'password' => Hash::make('admin123'), // Ganti dengan password yang kuat
+                'role' => 'pejabat_desa',
+                'email_verified_at' => now(), // Verifikasi langsung
+            ]
+        );
+        User::firstOrCreate(
+            ['email' => 'kaduswantilan@example.com'], // Kriteria pencarian
+            [
+                'name' => 'kadus wantilan',
+                'password' => Hash::make('admin123'), // Ganti dengan password yang kuat
+                'role' => 'pejabat_desa',
+                'email_verified_at' => now(), // Verifikasi langsung
+            ]
+        );
+        User::firstOrCreate(
+            ['email' => 'kaduscandirejo@example.com'], // Kriteria pencarian
+            [
+                'name' => 'kadus candirejo',
+                'password' => Hash::make('admin123'), // Ganti dengan password yang kuat
+                'role' => 'pejabat_desa',
+                'email_verified_at' => now(), // Verifikasi langsung
+            ]
+        );
+        User::firstOrCreate(
+            ['email' => 'kadusgunungrejo@example.com'], // Kriteria pencarian
+            [
+                'name' => 'kadus gunungrejo',
+                'password' => Hash::make('admin123'), // Ganti dengan password yang kuat
+                'role' => 'pejabat_desa',
+                'email_verified_at' => now(), // Verifikasi langsung
+            ]
+        );
+        User::firstOrCreate(
+            ['email' => 'kadusngrodon@example.com'], // Kriteria pencarian
+            [
+                'name' => 'Kadus ngrodon',
+                'password' => Hash::make('admin123'), // Ganti dengan password yang kuat
+                'role' => 'pejabat_desa',
+                'email_verified_at' => now(), // Verifikasi langsung
+            ]
+        );
     }
 }

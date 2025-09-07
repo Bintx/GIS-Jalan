@@ -14,7 +14,7 @@ class Jalan extends Model
     protected $fillable = [
         'nama_jalan',
         'panjang_jalan',
-        'kondisi_jalan',
+        'jenis_jalan',
         'regional_id',      // Ini untuk ID RT
         'rw_regional_id',   // Kolom baru untuk ID RW
         'dusun_regional_id', // Kolom baru untuk ID Dusun

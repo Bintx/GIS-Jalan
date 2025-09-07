@@ -210,23 +210,13 @@ class KerusakanJalanController extends Controller
         // Muat relasi regional, rwRegional, dan dusunRegional
         $jalan->load(['regional', 'rwRegional', 'dusunRegional']);
 
-        $tingkatKerusakanMap = [
-            'baik' => '',
-            'rusak ringan' => 'ringan',
-            'rusak sedang' => 'sedang',
-            'rusak berat' => 'berat',
-        ];
-
+        // Kembalikan data dalam format JSON yang diharapkan oleh JavaScript
         return response()->json([
             'id' => $jalan->id,
-            'nama_jalan' => $jalan->nama_jalan,
-            'panjang_jalan' => $jalan->panjang_jalan,
-            'kondisi_jalan_master' => $jalan->kondisi_jalan,
-            // Tambahkan nama regional lengkap
+            'jenis_jalan' => $jalan->jenis_jalan,
             'regional_rt_nama' => $jalan->regional->nama_regional ?? 'N/A',
             'regional_rw_nama' => $jalan->rwRegional->nama_regional ?? 'N/A',
             'regional_dusun_nama' => $jalan->dusunRegional->nama_regional ?? 'N/A',
-            'suggested_tingkat_kerusakan' => $tingkatKerusakanMap[$jalan->kondisi_jalan] ?? '',
             'suggested_panjang_ruas_rusak' => $jalan->panjang_jalan,
         ]);
     }

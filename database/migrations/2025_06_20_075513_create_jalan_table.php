@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('nama_jalan');
             $table->float('panjang_jalan');
-            $table->enum('kondisi_jalan', ['baik', 'rusak ringan', 'rusak sedang', 'rusak berat']);
+            $table->enum('jenis_jalan', ['aspal', 'beton', 'paving', 'tanah']);
             $table->foreignId('regional_id')->constrained('regional')->onDelete('cascade');
             $table->timestamps();
             $table->jsonb('geometri_json')->nullable(); // Ganti dengan jsonb atau text
